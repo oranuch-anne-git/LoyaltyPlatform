@@ -1,0 +1,204 @@
+// Loyalty Platform - Prisma Schema
+// Aligned with Loyalty_Platform_Feature_Summary_EN_with_NFR.md
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Seed: npm run prisma:seed (optional)
+// npx prisma db seed
+
+// ----- Admin & RBAC (NFR: Security, PDPA) -----
+model AdminUser {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  passwordHash String
+  name      String?
+  roleId    String
+  role      Role     @relation(fields: [roleId], references: [id])
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  auditLogs AuditLog[]
+}
+
+model Role {
+  id          String      @id @default(uuid())
+  name        String      @unique  // e.g. SUPER_ADMIN, ADMIN, OPERATOR, VIEWER
+  permissions String      @default("[]")  // JSON array of permission codes
+  adminUsers  AdminUser[]
+}
+
+// ----- Member Level (Yellow, Silver, Black) - BQuik-style benefits -----
+model MemberLevel {
+  id              String   @id @default(uuid())
+  code            String   @unique  // YELLOW | SILVER | BLACK
+  name            String   // Yellow Card | Silver Card | Black Card
+  sortOrder       Int      @default(0)
+  privilegeDetail String?  // Benefit details as newline-separated text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  members         Member[]
+}
+
+// ----- Member & Identity (LINE, Web, Mobile - Single Member ID) -----
+// Profile: Name, Surname, NationalType, Citizen ID / Passport, Sex, Birthdate, Mobile, Email, Point balance, Address
+// Address: AddressNo, Building, Road, Soi, Subdistrict, District, Province, PostalCode
+model Member {
+  id            String   @id @default(uuid())
+  memberId      String   @unique  // Single Member ID across channels
+  lineUserId    String?  @unique
+  memberLevelId String?
+  memberLevel   MemberLevel? @relation(fields: [memberLevelId], references: [id])
+  // Profile
+  name          String   // Given name (required)
+  surname       String   // (required)
+  nationalType  String   // THAI | OTHER (required)
+  citizenId     String?  // Thai Citizen ID (when nationalType = THAI)
+  passport      String?  // Passport number (when nationalType = OTHER)
+  sex           String   // M | F (required)
+  birthdate     DateTime // (required)
+  mobile        String   // (required)
+  email         String?
+  displayName   String?  // e.g. LINE display name
+  channel       String?  // LINE | WEB | MOBILE
+  consentPDPA   Boolean  @default(false)
+  consentAt     DateTime?
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  pointBalance  Int      @default(0)
+  // Address (addr_ prefix)
+  addr_addressNo   String?
+  addr_building    String?
+  addr_road        String?
+  addr_soi         String?
+  addr_subdistrict String?
+  addr_district    String?
+  addr_province    String?
+  addr_postalCode  String?
+  pointLedgers  PointLedger[]
+  redemptions   Redemption[]
+  transactions  PointTransaction[]
+}
+
+// ----- Point Engine (real-time, expiration) -----
+model PointLedger {
+  id          String   @id @default(uuid())
+  memberId    String
+  member      Member   @relation(fields: [memberId], references: [id])
+  balance     Int      // snapshot after each tx
+  change      Int      // +earn -redeem -expire -adjust
+  type        String   // EARN | REDEEM | EXPIRE | ADJUST | CAMPAIGN
+  referenceId String?  // campaignId, transactionId, etc.
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+}
+
+model PointTransaction {
+  id          String   @id @default(uuid())
+  memberId    String
+  member      Member   @relation(fields: [memberId], references: [id])
+  amount      Int      // positive = earn, negative = redeem
+  type        String   // PURCHASE | REDEMPTION | CAMPAIGN | ADJUSTMENT
+  referenceId String?
+  branchId    String?
+  metadata    String?  // JSON
+  createdAt   DateTime @default(now())
+}
+
+// ----- Reward & Privilege Catalog -----
+model Reward {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  category    String   // DISCOUNT | SERVICE | PRIVILEGE | PRODUCT
+  partnerId   String?
+  pointCost   Int
+  quantity    Int      @default(-1)  // -1 = unlimited
+  validFrom   DateTime?
+  validTo     DateTime?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  redemptions Redemption[]
+}
+
+model Redemption {
+  id         String   @id @default(uuid())
+  memberId   String
+  member     Member   @relation(fields: [memberId], references: [id])
+  rewardId   String
+  reward     Reward   @relation(fields: [rewardId], references: [id])
+  pointsUsed Int
+  status     String   @default("COMPLETED")  // PENDING | COMPLETED | CANCELLED
+  branchId   String?
+  createdAt  DateTime @default(now())
+}
+
+// ----- Campaign & Promotion -----
+model Campaign {
+  id          String   @id @default(uuid())
+  name        String
+  type        String   // DISCOUNT | CASHBACK | REDEMPTION
+  description String?
+  conditions  String?  // JSON: time, segment, branch
+  config      String?  // JSON: rules, banners
+  validFrom   DateTime
+  validTo     DateTime
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Banner {
+  id         String   @id @default(uuid())
+  campaignId String?
+  title      String
+  imageUrl   String?
+  linkUrl    String?
+  sortOrder  Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+}
+
+// ----- Branch & Service -----
+model Branch {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  name      String
+  address   String?
+  region    String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ----- Notification (LINE, broadcast) -----
+model NotificationLog {
+  id        String   @id @default(uuid())
+  memberId  String?
+  channel   String   // LINE | EMAIL | PUSH
+  type      String   // POINTS | PROMO | BROADCAST
+  payload   String?  // JSON
+  sentAt    DateTime @default(now())
+  status    String   @default("SENT")
+}
+
+// ----- Audit (NFR: Compliance, RBAC) -----
+model AuditLog {
+  id         String   @id @default(uuid())
+  adminId    String?
+  adminUser  AdminUser? @relation(fields: [adminId], references: [id])
+  action     String   // CREATE | UPDATE | DELETE | LOGIN | POINT_ADJUST
+  resource   String   // MEMBER | REWARD | CAMPAIGN | POINTS
+  resourceId String?
+  details    String?  // JSON
+  ip         String?
+  createdAt  DateTime @default(now())
+}

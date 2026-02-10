@@ -1,0 +1,26 @@
+# Loyalty Platform API – REST Client (VS Code) or JetBrains HTTP Client
+#
+# PREREQUISITE: Start Admin Backend first!
+#   cd admin-backend
+#   npm run start:dev
+#   Wait until you see: "Admin Backend API running at http://localhost:3000"
+#
+# Then: Click "Send Request" (link that appears above each ### block)
+
+### Test connection (should return 404 – proves server is running)
+GET http://localhost:3000
+
+### Get JWT with API key (no variables – copy/paste safe)
+POST http://localhost:3000/api/auth/token
+X-API-Key: Y1768IUTGX4K2M9PQ
+
+### Get JWT with email/password
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{"email":"admin@loyalty.local","password":"admin123"}
+
+### Member levels (paste your access_token below, then send)
+# Replace YOUR_ACCESS_TOKEN with the token from the response above
+GET http://localhost:3000/api/members/levels
+Authorization: Bearer YOUR_ACCESS_TOKEN
