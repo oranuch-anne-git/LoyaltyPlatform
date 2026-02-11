@@ -61,19 +61,83 @@ async function main() {
     prisma.branch.upsert({ where: { code: 'HKT01' }, create: { code: 'HKT01', name: 'Phuket Beach', address: '321 Beach Rd', region: 'Phuket' }, update: {} }),
   ]);
 
+  // ----- Thailand: Province, District, Subdistrict (sample only). For full data run: npm run prisma:seed-thailand -----
+  const provBkk = await prisma.province.upsert({
+    where: { code: '10' },
+    create: { code: '10', nameTh: 'กรุงเทพมหานคร', nameEn: 'Bangkok', sortOrder: 1 },
+    update: {},
+  });
+  const provCnx = await prisma.province.upsert({
+    where: { code: '50' },
+    create: { code: '50', nameTh: 'เชียงใหม่', nameEn: 'Chiang Mai', sortOrder: 2 },
+    update: {},
+  });
+  const provHkt = await prisma.province.upsert({
+    where: { code: '83' },
+    create: { code: '83', nameTh: 'ภูเก็ต', nameEn: 'Phuket', sortOrder: 3 },
+    update: {},
+  });
+
+  const distBkkPhra = await prisma.district.upsert({
+    where: { provinceId_code: { provinceId: provBkk.id, code: '101' } },
+    create: { provinceId: provBkk.id, code: '101', nameTh: 'พระนคร', nameEn: 'Phra Nakhon', sortOrder: 1 },
+    update: {},
+  });
+  const distBkkPathum = await prisma.district.upsert({
+    where: { provinceId_code: { provinceId: provBkk.id, code: '102' } },
+    create: { provinceId: provBkk.id, code: '102', nameTh: 'ปทุมวัน', nameEn: 'Pathum Wan', sortOrder: 2 },
+    update: {},
+  });
+  const distBkkSathon = await prisma.district.upsert({
+    where: { provinceId_code: { provinceId: provBkk.id, code: '103' } },
+    create: { provinceId: provBkk.id, code: '103', nameTh: 'สาทร', nameEn: 'Sathon', sortOrder: 3 },
+    update: {},
+  });
+  const distCnxMueang = await prisma.district.upsert({
+    where: { provinceId_code: { provinceId: provCnx.id, code: '501' } },
+    create: { provinceId: provCnx.id, code: '501', nameTh: 'เมืองเชียงใหม่', nameEn: 'Mueang Chiang Mai', sortOrder: 1 },
+    update: {},
+  });
+  const distHktMueang = await prisma.district.upsert({
+    where: { provinceId_code: { provinceId: provHkt.id, code: '8301' } },
+    create: { provinceId: provHkt.id, code: '8301', nameTh: 'เมืองภูเก็ต', nameEn: 'Mueang Phuket', sortOrder: 1 },
+    update: {},
+  });
+
+  const subdistricts = [
+    { districtId: distBkkPhra.id, code: '10101', nameTh: 'พระบรมมหาราชวัง', nameEn: 'Phra Borom Maha Ratchawang', zipCode: '10200' },
+    { districtId: distBkkPhra.id, code: '10102', nameTh: 'วังบูรพาภิรมย์', nameEn: 'Wang Burapha Phirom', zipCode: '10200' },
+    { districtId: distBkkPathum.id, code: '10201', nameTh: 'ปทุมวัน', nameEn: 'Pathum Wan', zipCode: '10330' },
+    { districtId: distBkkPathum.id, code: '10202', nameTh: 'รองเมือง', nameEn: 'Rong Mueang', zipCode: '10330' },
+    { districtId: distBkkSathon.id, code: '10301', nameTh: 'ยานนาวา', nameEn: 'Yan Nawa', zipCode: '10120' },
+    { districtId: distBkkSathon.id, code: '10302', nameTh: 'ทุ่งมหาเมฆ', nameEn: 'Thung Maha Mek', zipCode: '10120' },
+    { districtId: distCnxMueang.id, code: '50101', nameTh: 'ศรีภูมิ', nameEn: 'Si Phum', zipCode: '50200' },
+    { districtId: distCnxMueang.id, code: '50102', nameTh: 'พระสิงห์', nameEn: 'Phra Sing', zipCode: '50200' },
+    { districtId: distCnxMueang.id, code: '50103', nameTh: 'หายยา', nameEn: 'Hai Ya', zipCode: '50100' },
+    { districtId: distHktMueang.id, code: '830101', nameTh: 'ตลาดใหญ่', nameEn: 'Talat Yai', zipCode: '83000' },
+    { districtId: distHktMueang.id, code: '830102', nameTh: 'ตลาดเหนือ', nameEn: 'Talat Nuea', zipCode: '83000' },
+  ];
+  for (const s of subdistricts) {
+    await prisma.subdistrict.upsert({
+      where: { districtId_code: { districtId: s.districtId, code: s.code } },
+      create: s,
+      update: { nameTh: s.nameTh, nameEn: s.nameEn, zipCode: s.zipCode },
+    });
+  }
+
   // ----- Members (demo) -----
   const levels = await prisma.memberLevel.findMany({ orderBy: { sortOrder: 'asc' } });
-  const levelYellow = levels.find((l) => l.code === 'YELLOW')?.id;
-  const levelSilver = levels.find((l) => l.code === 'SILVER')?.id;
-  const levelBlack = levels.find((l) => l.code === 'BLACK')?.id;
+  const levelYellow = levels.find((l) => l.code === 'YELLOW')?.code;
+  const levelSilver = levels.find((l) => l.code === 'SILVER')?.code;
+  const levelBlack = levels.find((l) => l.code === 'BLACK')?.code;
   const birth = new Date('1990-01-15');
   const memberData = [
-    { memberId: 'DEMO001', lineUserId: 'Uline001', name: 'Sara', surname: 'Chen', nationalType: 'THAI' as const, citizenId: '1234567890123', email: 'sara@example.com', mobile: '0812345001', displayName: 'Sara Chen', channel: 'LINE', sex: 'F' as const, birthdate: birth, consentPDPA: true, pointBalance: 1250, memberLevelId: levelBlack },
-    { memberId: 'DEMO002', lineUserId: 'Uline002', name: 'James', surname: 'Wong', nationalType: 'OTHER' as const, passport: 'A12345678', email: 'james@example.com', mobile: '0812345002', displayName: 'James Wong', channel: 'LINE', sex: 'M' as const, birthdate: birth, consentPDPA: true, pointBalance: 480, memberLevelId: levelSilver },
-    { memberId: 'DEMO003', lineUserId: null, name: 'Nina', surname: 'Smith', nationalType: 'OTHER' as const, passport: 'B87654321', email: 'nina@example.com', mobile: '0812345003', displayName: 'Nina Smith', channel: 'WEB', sex: 'F' as const, birthdate: birth, consentPDPA: true, pointBalance: 2100, memberLevelId: levelSilver },
-    { memberId: 'DEMO004', lineUserId: null, name: 'Mike', surname: 'Lee', nationalType: 'THAI' as const, citizenId: '9876543210123', email: 'mike@example.com', mobile: '0812345004', displayName: 'Mike Lee', channel: 'WEB', sex: 'M' as const, birthdate: birth, consentPDPA: false, pointBalance: 90, memberLevelId: levelYellow },
-    { memberId: 'DEMO005', lineUserId: null, name: 'Priya', surname: 'Patel', nationalType: 'OTHER' as const, passport: 'C11223344', email: 'priya@example.com', mobile: '0812345005', displayName: 'Priya Patel', channel: 'MOBILE', sex: 'F' as const, birthdate: birth, consentPDPA: true, pointBalance: 750, memberLevelId: levelYellow },
-    { memberId: 'DEMO006', lineUserId: 'Uline006', name: 'Tom', surname: 'Brown', nationalType: 'THAI' as const, citizenId: '1112223334444', email: null, mobile: '0812345006', displayName: 'Tom Brown', channel: 'MOBILE', sex: 'M' as const, birthdate: birth, consentPDPA: true, pointBalance: 0, memberLevelId: undefined },
+    { memberId: 'DEMO001', lineUserId: 'Uline001', firstName: 'Sara', lastName: 'Chen', nationalType: 'THAI' as const, citizenId: '1234567890123', email: 'sara@example.com', mobile: '0812345001', channel: 'LINE', gender: 'F' as const, birthdate: birth, consentPDPA: true, pointBalance: 1250, levelCode: levelBlack ?? undefined },
+    { memberId: 'DEMO002', lineUserId: 'Uline002', firstName: 'James', lastName: 'Wong', nationalType: 'OTHER' as const, passport: 'A12345678', email: 'james@example.com', mobile: '0812345002', channel: 'LINE', gender: 'M' as const, birthdate: birth, consentPDPA: true, pointBalance: 480, levelCode: levelSilver ?? undefined },
+    { memberId: 'DEMO003', lineUserId: null, firstName: 'Nina', lastName: 'Smith', nationalType: 'OTHER' as const, passport: 'B87654321', email: 'nina@example.com', mobile: '0812345003', channel: 'WEB', gender: 'F' as const, birthdate: birth, consentPDPA: true, pointBalance: 2100, levelCode: levelSilver ?? undefined },
+    { memberId: 'DEMO004', lineUserId: null, firstName: 'Mike', lastName: 'Lee', nationalType: 'THAI' as const, citizenId: '9876543210123', email: 'mike@example.com', mobile: '0812345004', channel: 'WEB', gender: 'M' as const, birthdate: birth, consentPDPA: false, pointBalance: 90, levelCode: levelYellow ?? undefined },
+    { memberId: 'DEMO005', lineUserId: null, firstName: 'Priya', lastName: 'Patel', nationalType: 'OTHER' as const, passport: 'C11223344', email: 'priya@example.com', mobile: '0812345005', channel: 'MOBILE', gender: 'F' as const, birthdate: birth, consentPDPA: true, pointBalance: 750, levelCode: levelYellow ?? undefined },
+    { memberId: 'DEMO006', lineUserId: 'Uline006', firstName: 'Tom', lastName: 'Brown', nationalType: 'THAI' as const, citizenId: '1112223334444', email: null, mobile: '0812345006', channel: 'MOBILE', gender: 'M' as const, birthdate: birth, consentPDPA: true, pointBalance: 0, levelCode: undefined },
   ];
 
   const members: { id: string; memberId: string; pointBalance: number }[] = [];
@@ -83,23 +147,22 @@ async function main() {
       create: {
         memberId: m.memberId,
         lineUserId: m.lineUserId ?? undefined,
-        name: m.name,
-        surname: m.surname,
+        firstName: m.firstName,
+        lastName: m.lastName,
         nationalType: m.nationalType,
         citizenId: (m as { citizenId?: string }).citizenId ?? undefined,
         passport: (m as { passport?: string }).passport ?? undefined,
         email: (m as { email?: string }).email ?? undefined,
         mobile: m.mobile,
-        displayName: m.displayName ?? undefined,
         channel: m.channel,
-        sex: m.sex,
+        gender: m.gender,
         birthdate: m.birthdate,
         consentPDPA: m.consentPDPA,
         consentAt: m.consentPDPA ? new Date() : null,
         pointBalance: m.pointBalance,
-        memberLevelId: (m as { memberLevelId?: string }).memberLevelId ?? null,
+        levelCode: (m as { levelCode?: string }).levelCode ?? undefined,
       },
-      update: { pointBalance: m.pointBalance, memberLevelId: (m as { memberLevelId?: string }).memberLevelId ?? undefined },
+      update: { pointBalance: m.pointBalance, levelCode: (m as { levelCode?: string }).levelCode ?? undefined },
     });
     members.push({ id: created.id, memberId: created.memberId, pointBalance: created.pointBalance });
   }

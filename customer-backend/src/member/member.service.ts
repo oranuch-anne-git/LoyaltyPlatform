@@ -30,12 +30,12 @@ export class MemberService {
   }
 
   /**
-   * Member_GetInfo: full member info (profile, address, point ledger, redemptions, transactions).
-   * Proxies to Admin Backend GET /api/members/get-info/:id
+   * Member_GetInfo: full member info by memberId (profile, address, point ledger, redemptions, transactions).
+   * Proxies to Admin Backend GET /api/members/get-info/by-member-id/:memberId
    */
-  async getInfo(id: string, authHeader?: string) {
+  async getInfo(memberId: string, authHeader?: string) {
     try {
-      const { data } = await this.platformClient.get(`/api/members/get-info/${id}`, {
+      const { data } = await this.platformClient.get(`/api/members/get-info/by-member-id/${encodeURIComponent(memberId)}`, {
         headers: { Authorization: this.getAuthHeader(authHeader) },
       });
       return data;
@@ -75,12 +75,12 @@ export class MemberService {
   }
 
   /**
-   * Update member profile and/or address. Proxies to Admin Backend PATCH /api/members/:id.
+   * Update member profile and/or address by memberId. Proxies to Admin Backend PATCH /api/members/by-member-id/:memberId.
    * Body: any of name, surname, nationalType, citizenId, passport, sex, birthdate, mobile, email, addr_*, etc.
    */
-  async update(id: string, body: Record<string, unknown>, authHeader?: string) {
+  async update(memberId: string, body: Record<string, unknown>, authHeader?: string) {
     try {
-      const { data } = await this.platformClient.patch(`/api/members/${id}`, body, {
+      const { data } = await this.platformClient.patch(`/api/members/by-member-id/${encodeURIComponent(memberId)}`, body, {
         headers: { Authorization: this.getAuthHeader(authHeader) },
       });
       return data;
@@ -90,25 +90,40 @@ export class MemberService {
   }
 
   /**
-   * Update member address only. Proxies to Admin Backend PATCH /api/members/:id with addr_* fields.
+   * Update member address only by memberId. Proxies to Admin Backend PATCH /api/members/by-member-id/:memberId/address.
    */
-  async updateAddress(id: string, body: Record<string, unknown>, authHeader?: string) {
+  async updateAddress(memberId: string, body: Record<string, unknown>, authHeader?: string) {
     const addressFields = [
-      'addr_addressNo', 'addr_building', 'addr_road', 'addr_soi',
-      'addr_subdistrict', 'addr_district', 'addr_province', 'addr_postalCode',
+      'addr_addressNo', 'addr_building', 'addr_road', 'addr_soi', 'addr_moo',
+      'addr_subdistrict', 'addr_subdistrictCode', 'addr_district', 'addr_districtCode',
+      'addr_province', 'addr_provinceCode', 'addr_zipCode', 'addr_country',
     ];
     const addressBody: Record<string, unknown> = {};
     for (const key of addressFields) {
       if (Object.prototype.hasOwnProperty.call(body, key)) addressBody[key] = body[key];
     }
-    return this.update(id, addressBody, authHeader);
+    try {
+      const { data } = await this.platformClient.patch(`/api/members/by-member-id/${encodeURIComponent(memberId)}/address`, addressBody, {
+        headers: { Authorization: this.getAuthHeader(authHeader) },
+      });
+      return data;
+    } catch (err) {
+      this.handleError(err);
+    }
   }
 
   /**
-   * Cancel member: mark active = false (deactivate). Does not delete the member.
-   * Proxies to Admin Backend PATCH /api/members/:id with { active: false }.
+   * Cancel member by memberId: mark active = false (deactivate). Does not delete the member.
+   * Proxies to Admin Backend PATCH /api/members/by-member-id/:memberId/cancel.
    */
-  async cancel(id: string, authHeader?: string) {
-    return this.update(id, { active: false }, authHeader);
+  async cancel(memberId: string, authHeader?: string) {
+    try {
+      const { data } = await this.platformClient.patch(`/api/members/by-member-id/${encodeURIComponent(memberId)}/cancel`, {}, {
+        headers: { Authorization: this.getAuthHeader(authHeader) },
+      });
+      return data;
+    } catch (err) {
+      this.handleError(err);
+    }
   }
 }

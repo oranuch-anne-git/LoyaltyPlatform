@@ -7,11 +7,15 @@ export class CreateMemberDto {
 
   @IsOptional()
   @IsString()
-  name?: string;
+  crmId?: string;
 
   @IsOptional()
   @IsString()
-  surname?: string;
+  firstName?: string;
+
+  @IsOptional()
+  @IsString()
+  lastName?: string;
 
   @IsOptional()
   @IsIn(['THAI', 'OTHER'])
@@ -27,7 +31,7 @@ export class CreateMemberDto {
 
   @IsOptional()
   @IsString()
-  sex?: string;
+  gender?: string;
 
   @IsOptional()
   @IsDateString()
@@ -43,15 +47,11 @@ export class CreateMemberDto {
 
   @IsOptional()
   @IsString()
-  displayName?: string;
-
-  @IsOptional()
-  @IsString()
   channel?: string;
 
   @IsOptional()
   @IsString()
-  memberLevelId?: string;
+  levelCode?: string;
 
   @IsOptional()
   @IsBoolean()
@@ -76,7 +76,15 @@ export class CreateMemberDto {
 
   @IsOptional()
   @IsString()
+  addr_moo?: string;
+
+  @IsOptional()
+  @IsString()
   addr_subdistrict?: string;
+
+  @IsOptional()
+  @IsString()
+  addr_subdistrictCode?: string;
 
   @IsOptional()
   @IsString()
@@ -84,21 +92,37 @@ export class CreateMemberDto {
 
   @IsOptional()
   @IsString()
+  addr_districtCode?: string;
+
+  @IsOptional()
+  @IsString()
   addr_province?: string;
 
   @IsOptional()
   @IsString()
-  addr_postalCode?: string;
+  addr_provinceCode?: string;
+
+  @IsOptional()
+  @IsString()
+  addr_zipCode?: string;
+
+  @IsOptional()
+  @IsString()
+  addr_country?: string;
 }
 
 export class UpdateMemberDto {
   @IsOptional()
   @IsString()
-  name?: string;
+  crmId?: string;
 
   @IsOptional()
   @IsString()
-  surname?: string;
+  firstName?: string;
+
+  @IsOptional()
+  @IsString()
+  lastName?: string;
 
   @IsOptional()
   @IsIn(['THAI', 'OTHER'])
@@ -114,7 +138,7 @@ export class UpdateMemberDto {
 
   @IsOptional()
   @IsString()
-  sex?: string;
+  gender?: string;
 
   @IsOptional()
   @IsDateString()
@@ -130,11 +154,7 @@ export class UpdateMemberDto {
 
   @IsOptional()
   @IsString()
-  displayName?: string;
-
-  @IsOptional()
-  @IsString()
-  memberLevelId?: string;
+  levelCode?: string;
 
   @IsOptional()
   @IsString()
@@ -154,7 +174,15 @@ export class UpdateMemberDto {
 
   @IsOptional()
   @IsString()
+  addr_moo?: string;
+
+  @IsOptional()
+  @IsString()
   addr_subdistrict?: string;
+
+  @IsOptional()
+  @IsString()
+  addr_subdistrictCode?: string;
 
   @IsOptional()
   @IsString()
@@ -162,11 +190,23 @@ export class UpdateMemberDto {
 
   @IsOptional()
   @IsString()
+  addr_districtCode?: string;
+
+  @IsOptional()
+  @IsString()
   addr_province?: string;
 
   @IsOptional()
   @IsString()
-  addr_postalCode?: string;
+  addr_provinceCode?: string;
+
+  @IsOptional()
+  @IsString()
+  addr_zipCode?: string;
+
+  @IsOptional()
+  @IsString()
+  addr_country?: string;
 
   @IsOptional()
   @IsBoolean()

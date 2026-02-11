@@ -34,11 +34,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const login = useCallback(async (email: string, password: string) => {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
+    let res: Response;
+    try {
+      res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+    } catch (e) {
+      const msg = e instanceof TypeError && e.message === 'Failed to fetch'
+        ? 'Cannot reach the API. Is Admin Backend running? Start it with: cd admin-backend && npm run start:dev'
+        : (e as Error).message;
+      throw new Error(msg);
+    }
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.message || 'Login failed');

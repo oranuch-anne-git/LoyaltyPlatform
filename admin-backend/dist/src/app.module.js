@@ -21,6 +21,7 @@ const analytics_module_1 = require("./analytics/analytics.module");
 const line_webhook_module_1 = require("./line-webhook/line-webhook.module");
 const branch_module_1 = require("./branch/branch.module");
 const audit_module_1 = require("./audit/audit.module");
+const location_module_1 = require("./location/location.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -32,6 +33,7 @@ exports.AppModule = AppModule = __decorate([
             prisma_module_1.PrismaModule,
             audit_module_1.AuditModule,
             auth_module_1.AuthModule,
+            location_module_1.LocationModule,
             member_module_1.MemberModule,
             points_module_1.PointsModule,
             rewards_module_1.RewardsModule,

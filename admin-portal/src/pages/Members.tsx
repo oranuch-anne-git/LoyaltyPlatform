@@ -5,9 +5,9 @@ import { apiGet } from '../api';
 type Member = {
   id: string;
   memberId: string;
-  name: string | null;
-  surname: string | null;
-  displayName: string | null;
+  crmId: string | null;
+  firstName: string | null;
+  lastName: string | null;
   email: string | null;
   mobile: string | null;
   channel: string | null;
@@ -37,7 +37,7 @@ export default function Members() {
           <label>Search</label>
           <input
             type="text"
-            placeholder="Member ID, name, surname, email, mobile..."
+            placeholder="Member ID, CRM ID, first name, last name, email, mobile..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           />
@@ -51,9 +51,10 @@ export default function Members() {
             <table className="data-table">
               <thead>
                 <tr>
+                  <th>ID</th>
                   <th>Member ID</th>
-                  <th>Name</th>
-                  <th>Surname</th>
+                  <th>First name</th>
+                  <th>Last name</th>
                   <th>Level</th>
                   <th>Email</th>
                   <th>Channel</th>
@@ -65,9 +66,10 @@ export default function Members() {
               <tbody>
                 {data.items.map((m) => (
                   <tr key={m.id}>
+                    <td><code title={m.id} style={{ fontSize: '0.8rem' }}>{m.id.slice(0, 8)}…</code></td>
                     <td><code>{m.memberId}</code></td>
-                    <td>{m.name || m.displayName || '—'}</td>
-                    <td>{m.surname || '—'}</td>
+                    <td>{m.firstName || '—'}</td>
+                    <td>{m.lastName || '—'}</td>
                     <td><span className="badge">{m.memberLevel?.name ?? '—'}</span></td>
                     <td>{m.email || '—'}</td>
                     <td><span className="badge badge-muted">{m.channel ?? '—'}</span></td>

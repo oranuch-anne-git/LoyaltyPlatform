@@ -46,6 +46,34 @@ export class MemberController {
     return this.member.getInfo(id);
   }
 
+  /** Member_GetInfo by memberId (e.g. M123ABC). */
+  @Get('get-info/by-member-id/:memberId')
+  @UseGuards(AuthGuard('jwt'))
+  getInfoByMemberId(@Param('memberId') memberId: string) {
+    return this.member.getInfoByMemberId(memberId);
+  }
+
+  /** Update member profile by memberId. */
+  @Patch('by-member-id/:memberId')
+  @UseGuards(AuthGuard('jwt'))
+  updateByMemberId(@Param('memberId') memberId: string, @Body() dto: UpdateMemberDto) {
+    return this.member.updateByMemberId(memberId, dto);
+  }
+
+  /** Update member address only by memberId. */
+  @Patch('by-member-id/:memberId/address')
+  @UseGuards(AuthGuard('jwt'))
+  updateAddressByMemberId(@Param('memberId') memberId: string, @Body() dto: UpdateMemberDto) {
+    return this.member.updateByMemberId(memberId, dto);
+  }
+
+  /** Cancel member (active = false) by memberId. */
+  @Patch('by-member-id/:memberId/cancel')
+  @UseGuards(AuthGuard('jwt'))
+  cancelByMemberId(@Param('memberId') memberId: string) {
+    return this.member.updateByMemberId(memberId, { active: false });
+  }
+
   @Get('by-id/:memberId')
   @UseGuards(AuthGuard('jwt'))
   findByMemberId(@Param('memberId') memberId: string) {

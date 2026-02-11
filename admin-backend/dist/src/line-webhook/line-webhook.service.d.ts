@@ -6,7 +6,7 @@ export declare class LineWebhookService {
     private member;
     private notifications;
     constructor(prisma: PrismaService, member: MemberService, notifications: NotificationsService);
-    handleFollow(lineUserId: string, displayName?: string): Promise<{
+    handleFollow(lineUserId: string, lineDisplayName?: string): Promise<{
         memberId: string;
         isNew: boolean;
     }>;

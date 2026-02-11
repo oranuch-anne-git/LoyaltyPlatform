@@ -7,16 +7,25 @@ function getToken(): string | null {
   }
 }
 
+const API_UNREACHABLE_MSG =
+  'Cannot reach the API. Is Admin Backend running? Start it with: cd admin-backend && npm run start:dev';
+
 export async function api<T>(path: string, options?: RequestInit): Promise<T> {
   const token = getToken();
-  const res = await fetch(path.startsWith('http') ? path : `/api${path.replace(/^\/api/, '')}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options?.headers,
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(path.startsWith('http') ? path : `/api${path.replace(/^\/api/, '')}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...options?.headers,
+      },
+    });
+  } catch (e) {
+    const msg = e instanceof TypeError && e.message === 'Failed to fetch' ? API_UNREACHABLE_MSG : (e as Error).message;
+    throw new Error(msg);
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: res.statusText }));
     throw new Error(err.message || 'Request failed');

@@ -3,22 +3,22 @@ export declare class BranchController {
     private branch;
     constructor(branch: BranchService);
     findAll(active?: string): Promise<{
+        code: string;
         id: string;
         name: string;
         active: boolean;
         createdAt: Date;
         updatedAt: Date;
-        code: string;
         address: string | null;
         region: string | null;
     }[]>;
     findOne(id: string): Promise<{
+        code: string;
         id: string;
         name: string;
         active: boolean;
         createdAt: Date;
         updatedAt: Date;
-        code: string;
         address: string | null;
         region: string | null;
     }>;
@@ -28,12 +28,12 @@ export declare class BranchController {
         address?: string;
         region?: string;
     }): Promise<{
+        code: string;
         id: string;
         name: string;
         active: boolean;
         createdAt: Date;
         updatedAt: Date;
-        code: string;
         address: string | null;
         region: string | null;
     }>;

@@ -20,7 +20,7 @@ let LineWebhookService = class LineWebhookService {
         this.member = member;
         this.notifications = notifications;
     }
-    async handleFollow(lineUserId, displayName) {
+    async handleFollow(lineUserId, lineDisplayName) {
         const existing = await this.prisma.member.findUnique({
             where: { lineUserId },
         });
@@ -28,7 +28,8 @@ let LineWebhookService = class LineWebhookService {
             return { memberId: existing.memberId, isNew: false };
         const member = await this.member.create({
             lineUserId,
-            displayName: displayName || 'LINE User',
+            firstName: lineDisplayName?.trim() || 'LINE',
+            lastName: 'User',
             channel: 'LINE',
         });
         return { memberId: member.memberId, isNew: true };

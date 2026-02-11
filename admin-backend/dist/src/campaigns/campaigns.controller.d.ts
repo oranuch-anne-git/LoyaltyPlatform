@@ -31,9 +31,9 @@ export declare class CampaignsController {
     }[]>;
     getBanners(): Promise<{
         id: string;
+        sortOrder: number;
         active: boolean;
         createdAt: Date;
-        sortOrder: number;
         campaignId: string | null;
         title: string;
         imageUrl: string | null;
@@ -47,9 +47,9 @@ export declare class CampaignsController {
         sortOrder?: number;
     }): Promise<{
         id: string;
+        sortOrder: number;
         active: boolean;
         createdAt: Date;
-        sortOrder: number;
         campaignId: string | null;
         title: string;
         imageUrl: string | null;

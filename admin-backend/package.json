@@ -11,12 +11,15 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "prisma:seed": "ts-node prisma/seed.ts",
+    "prisma:download-thailand": "node prisma/scripts/download-thailand-geography.js",
+    "prisma:seed-thailand": "ts-node prisma/seed-thailand.ts",
     "prisma:clear": "ts-node prisma/clear-sample-data.ts"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
+    "@loyalty/contracts": "file:../packages/contracts",
     "@nestjs/common": "^10.3.0",
     "@nestjs/config": "^3.1.1",
     "@nestjs/core": "^10.3.0",

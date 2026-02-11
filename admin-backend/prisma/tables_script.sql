@@ -33,37 +33,75 @@ CREATE TABLE "MemberLevel" (
 );
 CREATE UNIQUE INDEX "MemberLevel_code_key" ON "MemberLevel"("code");
 
+-- Province, District, Subdistrict (Thailand address master)
+CREATE TABLE "Province" (
+    "id"         TEXT NOT NULL PRIMARY KEY,
+    "code"       TEXT NOT NULL UNIQUE,
+    "nameTh"     TEXT NOT NULL,
+    "nameEn"     TEXT,
+    "sortOrder"  INTEGER NOT NULL DEFAULT 0
+);
+CREATE UNIQUE INDEX "Province_code_key" ON "Province"("code");
+
+CREATE TABLE "District" (
+    "id"          TEXT NOT NULL PRIMARY KEY,
+    "provinceId"  TEXT NOT NULL,
+    "code"        TEXT NOT NULL,
+    "nameTh"      TEXT NOT NULL,
+    "nameEn"      TEXT,
+    "sortOrder"   INTEGER NOT NULL DEFAULT 0,
+    CONSTRAINT "District_provinceId_fkey" FOREIGN KEY ("provinceId") REFERENCES "Province" ("id")
+);
+CREATE UNIQUE INDEX "District_provinceId_code_key" ON "District"("provinceId", "code");
+
+CREATE TABLE "Subdistrict" (
+    "id"          TEXT NOT NULL PRIMARY KEY,
+    "districtId"  TEXT NOT NULL,
+    "code"        TEXT NOT NULL,
+    "nameTh"      TEXT NOT NULL,
+    "nameEn"      TEXT,
+    "zipCode"     TEXT,
+    "sortOrder"   INTEGER NOT NULL DEFAULT 0,
+    CONSTRAINT "Subdistrict_districtId_fkey" FOREIGN KEY ("districtId") REFERENCES "District" ("id")
+);
+CREATE UNIQUE INDEX "Subdistrict_districtId_code_key" ON "Subdistrict"("districtId", "code");
+
 -- Member
 CREATE TABLE "Member" (
-    "id"                TEXT NOT NULL PRIMARY KEY,
-    "memberId"          TEXT NOT NULL UNIQUE,
-    "lineUserId"        TEXT UNIQUE,
-    "memberLevelId"     TEXT,
-    "name"              TEXT NOT NULL,
-    "surname"           TEXT NOT NULL,
-    "nationalType"      TEXT NOT NULL,   -- THAI | OTHER
-    "citizenId"         TEXT,
-    "passport"          TEXT,
-    "sex"               TEXT NOT NULL,   -- M | F
-    "birthdate"         DATE NOT NULL,
-    "mobile"            TEXT NOT NULL,
-    "email"             TEXT,
-    "displayName"       TEXT,
-    "channel"           TEXT,   -- LINE | WEB | MOBILE
-    "consentPDPA"       BOOLEAN NOT NULL DEFAULT false,
-    "consentAt"         DATETIME,
-    "active"            BOOLEAN NOT NULL DEFAULT true,
-    "createdAt"         DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt"         DATETIME NOT NULL,
-    "pointBalance"      INTEGER NOT NULL DEFAULT 0,
-    "addr_addressNo"    TEXT,
-    "addr_building"     TEXT,
-    "addr_road"         TEXT,
-    "addr_soi"          TEXT,
-    "addr_subdistrict"  TEXT,
-    "addr_district"     TEXT,
-    "addr_province"     TEXT,
-    "addr_postalCode"   TEXT
+    "id"                    TEXT NOT NULL PRIMARY KEY,
+    "memberId"              TEXT NOT NULL UNIQUE,
+    "crmId"                 TEXT,
+    "lineUserId"            TEXT UNIQUE,
+    "levelCode"             TEXT,
+    "firstName"             TEXT NOT NULL,
+    "lastName"              TEXT NOT NULL,
+    "nationalType"          TEXT NOT NULL,   -- THAI | OTHER
+    "citizenId"             TEXT,
+    "passport"              TEXT,
+    "gender"                TEXT NOT NULL,   -- M | F
+    "birthdate"             DATETIME,
+    "mobile"                TEXT NOT NULL,
+    "email"                 TEXT,
+    "channel"               TEXT,   -- LINE | WEB | MOBILE
+    "consentPDPA"           BOOLEAN NOT NULL DEFAULT false,
+    "consentAt"             DATETIME,
+    "active"                BOOLEAN NOT NULL DEFAULT true,
+    "createdAt"             DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt"             DATETIME NOT NULL,
+    "pointBalance"         INTEGER NOT NULL DEFAULT 0,
+    "addr_addressNo"        TEXT,
+    "addr_building"         TEXT,
+    "addr_road"             TEXT,
+    "addr_soi"              TEXT,
+    "addr_moo"              TEXT,
+    "addr_subdistrict"      TEXT,
+    "addr_subdistrictCode" TEXT,
+    "addr_district"         TEXT,
+    "addr_districtCode"     TEXT,
+    "addr_province"         TEXT,
+    "addr_provinceCode"     TEXT,
+    "addr_zipCode"          TEXT,
+    "addr_country"          TEXT
 );
 CREATE UNIQUE INDEX "Member_memberId_key" ON "Member"("memberId");
 CREATE UNIQUE INDEX "Member_lineUserId_key" ON "Member"("lineUserId");

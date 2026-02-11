@@ -13,11 +13,11 @@ export class MemberController {
     return this.member.getLevels(authorization);
   }
 
-  /** Member_GetInfo: full member info (profile, address, pointLedgers, redemptions, transactions). :id = internal UUID */
-  @Get('get-info/:id')
+  /** Member_GetInfo: full member info by memberId (profile, address, pointLedgers, redemptions, transactions). */
+  @Get('get-info/:memberId')
   @UseGuards(AuthGuard('jwt'))
-  getInfo(@Param('id') id: string, @Headers('authorization') authorization?: string) {
-    return this.member.getInfo(id, authorization);
+  getInfo(@Param('memberId') memberId: string, @Headers('authorization') authorization?: string) {
+    return this.member.getInfo(memberId, authorization);
   }
 
   /** Create member. Body: profile + optional address (name, surname, nationalType, sex, birthdate, mobile, email, addr_*, etc.) */
@@ -27,32 +27,32 @@ export class MemberController {
     return this.member.create(body, authorization);
   }
 
-  /** Update member address only. Body: addr_addressNo, addr_building, addr_road, addr_soi, addr_subdistrict, addr_district, addr_province, addr_postalCode */
-  @Patch(':id/address')
+  /** Update member address only by memberId. Body: addr_addressNo, addr_building, addr_road, addr_soi, addr_subdistrict, addr_district, addr_province, addr_postalCode */
+  @Patch(':memberId/address')
   @UseGuards(AuthGuard('jwt'))
   updateAddress(
-    @Param('id') id: string,
+    @Param('memberId') memberId: string,
     @Body() body: Record<string, unknown>,
     @Headers('authorization') authorization?: string,
   ) {
-    return this.member.updateAddress(id, body, authorization);
+    return this.member.updateAddress(memberId, body, authorization);
   }
 
-  /** Cancel member: mark active = false (deactivate). Does not delete the member. */
-  @Patch(':id/cancel')
+  /** Cancel member by memberId: mark active = false (deactivate). Does not delete the member. */
+  @Patch(':memberId/cancel')
   @UseGuards(AuthGuard('jwt'))
-  cancel(@Param('id') id: string, @Headers('authorization') authorization?: string) {
-    return this.member.cancel(id, authorization);
+  cancel(@Param('memberId') memberId: string, @Headers('authorization') authorization?: string) {
+    return this.member.cancel(memberId, authorization);
   }
 
-  /** Update member profile (and/or address). Body: name, surname, nationalType, citizenId, passport, sex, birthdate, mobile, email, addr_*, etc. */
-  @Patch(':id')
+  /** Update member profile (and/or address) by memberId. Body: name, surname, nationalType, citizenId, passport, sex, birthdate, mobile, email, addr_*, etc. */
+  @Patch(':memberId')
   @UseGuards(AuthGuard('jwt'))
   update(
-    @Param('id') id: string,
+    @Param('memberId') memberId: string,
     @Body() body: Record<string, unknown>,
     @Headers('authorization') authorization?: string,
   ) {
-    return this.member.update(id, body, authorization);
+    return this.member.update(memberId, body, authorization);
   }
 }

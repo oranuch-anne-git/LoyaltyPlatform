@@ -29,7 +29,7 @@ export class LineWebhookController {
     const events = body.events || [];
     for (const event of events) {
       if (event.type === 'follow') {
-        await this.line.handleFollow(event.source.userId, event.profile?.displayName);
+        await this.line.handleFollow(event.source.userId, event.profile?.displayName as string | undefined);
       }
       if (event.type === 'message' && event.message?.type === 'text') {
         await this.line.handleMessage(event.source.userId, event.message.text);

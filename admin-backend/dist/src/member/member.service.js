@@ -19,36 +19,53 @@ let MemberService = class MemberService {
     generateMemberId() {
         return 'M' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 8).toUpperCase();
     }
+    async attachMemberLevel(member) {
+        if (!member.levelCode)
+            return { ...member, memberLevel: null };
+        const level = await this.prisma.memberLevel.findUnique({ where: { code: member.levelCode } });
+        return { ...member, memberLevel: level ? { id: level.id, code: level.code, name: level.name } : null };
+    }
     async create(dto) {
+        if (dto.levelCode) {
+            const level = await this.prisma.memberLevel.findUnique({ where: { code: dto.levelCode } });
+            if (!level)
+                throw new common_1.NotFoundException(`Member level not found: ${dto.levelCode}`);
+        }
         const memberId = this.generateMemberId();
-        return this.prisma.member.create({
+        const member = await this.prisma.member.create({
             data: {
                 memberId,
+                crmId: dto.crmId,
                 lineUserId: dto.lineUserId,
-                name: dto.name ?? '',
-                surname: dto.surname ?? '',
+                firstName: dto.firstName ?? '',
+                lastName: dto.lastName ?? '',
                 nationalType: dto.nationalType ?? 'OTHER',
                 citizenId: dto.citizenId,
                 passport: dto.passport,
-                sex: dto.sex ?? 'M',
-                birthdate: dto.birthdate ? new Date(dto.birthdate) : new Date('1970-01-01'),
+                gender: dto.gender ?? 'M',
+                birthdate: dto.birthdate ? new Date(dto.birthdate) : null,
                 mobile: dto.mobile ?? '',
                 email: dto.email,
-                displayName: dto.displayName,
                 channel: dto.channel ?? undefined,
-                memberLevelId: dto.memberLevelId ?? undefined,
+                levelCode: dto.levelCode ?? undefined,
                 consentPDPA: dto.consentPDPA ?? false,
                 consentAt: dto.consentPDPA ? new Date() : null,
                 addr_addressNo: dto.addr_addressNo,
                 addr_building: dto.addr_building,
                 addr_road: dto.addr_road,
                 addr_soi: dto.addr_soi,
+                addr_moo: dto.addr_moo,
                 addr_subdistrict: dto.addr_subdistrict,
+                addr_subdistrictCode: dto.addr_subdistrictCode,
                 addr_district: dto.addr_district,
+                addr_districtCode: dto.addr_districtCode,
                 addr_province: dto.addr_province,
-                addr_postalCode: dto.addr_postalCode,
+                addr_provinceCode: dto.addr_provinceCode,
+                addr_zipCode: dto.addr_zipCode,
+                addr_country: dto.addr_country,
             },
         });
+        return this.attachMemberLevel(member);
     }
     async findAll(page = 1, limit = 20, search) {
         const skip = (page - 1) * limit;
@@ -56,36 +73,36 @@ let MemberService = class MemberService {
             ? {
                 OR: [
                     { memberId: { contains: search } },
-                    { name: { contains: search } },
-                    { surname: { contains: search } },
+                    { crmId: { contains: search } },
+                    { firstName: { contains: search } },
+                    { lastName: { contains: search } },
                     { email: { contains: search } },
                     { mobile: { contains: search } },
-                    { displayName: { contains: search } },
                     { citizenId: { contains: search } },
                     { passport: { contains: search } },
                     { addr_district: { contains: search } },
                     { addr_province: { contains: search } },
-                    { addr_postalCode: { contains: search } },
+                    { addr_zipCode: { contains: search } },
                 ],
             }
             : {};
-        const [items, total] = await Promise.all([
+        const [rows, total] = await Promise.all([
             this.prisma.member.findMany({
                 where,
                 skip,
                 take: limit,
                 orderBy: { createdAt: 'desc' },
-                include: { memberLevel: true, pointLedgers: { take: 0 }, redemptions: { take: 0 }, transactions: { take: 0 } },
+                include: { pointLedgers: { take: 0 }, redemptions: { take: 0 }, transactions: { take: 0 } },
             }),
             this.prisma.member.count({ where }),
         ]);
+        const items = await Promise.all(rows.map((m) => this.attachMemberLevel(m)));
         return { items, total, page, limit };
     }
     async findOne(id) {
         const member = await this.prisma.member.findUnique({
             where: { id },
             include: {
-                memberLevel: true,
                 pointLedgers: { orderBy: { createdAt: 'desc' }, take: 50 },
                 redemptions: { include: { reward: true }, orderBy: { createdAt: 'desc' }, take: 20 },
                 transactions: { orderBy: { createdAt: 'desc' }, take: 50 },
@@ -93,48 +110,73 @@ let MemberService = class MemberService {
         });
         if (!member)
             throw new common_1.NotFoundException('Member not found');
-        return member;
+        return this.attachMemberLevel(member);
     }
     async getInfo(id) {
         return this.findOne(id);
     }
+    async getInfoByMemberId(memberId) {
+        const member = await this.prisma.member.findUnique({ where: { memberId } });
+        if (!member)
+            throw new common_1.NotFoundException('Member not found');
+        return this.attachMemberLevel(member);
+    }
+    async updateByMemberId(memberId, dto) {
+        const m = await this.prisma.member.findUnique({ where: { memberId } });
+        if (!m)
+            throw new common_1.NotFoundException('Member not found');
+        return this.update(m.id, dto);
+    }
     async findByMemberId(memberId) {
         const member = await this.prisma.member.findUnique({
             where: { memberId },
-            include: { memberLevel: true, redemptions: { include: { reward: true }, take: 10 }, transactions: { take: 20 } },
+            include: { redemptions: { include: { reward: true }, take: 10 }, transactions: { take: 20 } },
         });
         if (!member)
             throw new common_1.NotFoundException('Member not found');
-        return member;
+        return this.attachMemberLevel(member);
     }
     async update(id, dto) {
-        await this.findOne(id);
-        return this.prisma.member.update({
+        await this.prisma.member.findUniqueOrThrow({ where: { id } });
+        if (dto.levelCode !== undefined) {
+            if (dto.levelCode) {
+                const level = await this.prisma.memberLevel.findUnique({ where: { code: dto.levelCode } });
+                if (!level)
+                    throw new common_1.NotFoundException(`Member level not found: ${dto.levelCode}`);
+            }
+        }
+        const member = await this.prisma.member.update({
             where: { id },
             data: {
-                name: dto.name,
-                surname: dto.surname,
+                crmId: dto.crmId,
+                firstName: dto.firstName,
+                lastName: dto.lastName,
                 nationalType: dto.nationalType,
                 citizenId: dto.citizenId,
                 passport: dto.passport,
-                sex: dto.sex,
-                birthdate: dto.birthdate ? new Date(dto.birthdate) : undefined,
+                gender: dto.gender,
+                birthdate: dto.birthdate ? new Date(dto.birthdate) : dto.birthdate === null || dto.birthdate === '' ? null : undefined,
                 mobile: dto.mobile,
                 email: dto.email,
-                displayName: dto.displayName,
                 addr_addressNo: dto.addr_addressNo,
                 addr_building: dto.addr_building,
                 addr_road: dto.addr_road,
                 addr_soi: dto.addr_soi,
+                addr_moo: dto.addr_moo,
                 addr_subdistrict: dto.addr_subdistrict,
+                addr_subdistrictCode: dto.addr_subdistrictCode,
                 addr_district: dto.addr_district,
+                addr_districtCode: dto.addr_districtCode,
                 addr_province: dto.addr_province,
-                addr_postalCode: dto.addr_postalCode,
-                memberLevelId: dto.memberLevelId ?? undefined,
+                addr_provinceCode: dto.addr_provinceCode,
+                addr_zipCode: dto.addr_zipCode,
+                addr_country: dto.addr_country,
+                levelCode: dto.levelCode ?? undefined,
                 consentPDPA: dto.consentPDPA,
                 active: dto.active,
             },
         });
+        return this.attachMemberLevel(member);
     }
     async getLevels() {
         return this.prisma.memberLevel.findMany({ orderBy: { sortOrder: 'asc' } });

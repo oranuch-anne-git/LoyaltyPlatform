@@ -38,6 +38,18 @@ let MemberController = class MemberController {
     getInfo(id) {
         return this.member.getInfo(id);
     }
+    getInfoByMemberId(memberId) {
+        return this.member.getInfoByMemberId(memberId);
+    }
+    updateByMemberId(memberId, dto) {
+        return this.member.updateByMemberId(memberId, dto);
+    }
+    updateAddressByMemberId(memberId, dto) {
+        return this.member.updateByMemberId(memberId, dto);
+    }
+    cancelByMemberId(memberId) {
+        return this.member.updateByMemberId(memberId, { active: false });
+    }
     findByMemberId(memberId) {
         return this.member.findByMemberId(memberId);
     }
@@ -91,6 +103,40 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], MemberController.prototype, "getInfo", null);
+__decorate([
+    (0, common_1.Get)('get-info/by-member-id/:memberId'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, common_1.Param)('memberId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], MemberController.prototype, "getInfoByMemberId", null);
+__decorate([
+    (0, common_1.Patch)('by-member-id/:memberId'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, common_1.Param)('memberId')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, dto_1.UpdateMemberDto]),
+    __metadata("design:returntype", void 0)
+], MemberController.prototype, "updateByMemberId", null);
+__decorate([
+    (0, common_1.Patch)('by-member-id/:memberId/address'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, common_1.Param)('memberId')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, dto_1.UpdateMemberDto]),
+    __metadata("design:returntype", void 0)
+], MemberController.prototype, "updateAddressByMemberId", null);
+__decorate([
+    (0, common_1.Patch)('by-member-id/:memberId/cancel'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, common_1.Param)('memberId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], MemberController.prototype, "cancelByMemberId", null);
 __decorate([
     (0, common_1.Get)('by-id/:memberId'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),

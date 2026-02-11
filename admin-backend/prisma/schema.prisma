@@ -43,29 +43,27 @@ model MemberLevel {
   privilegeDetail String?  // Benefit details as newline-separated text
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-  members         Member[]
 }
 
 // ----- Member & Identity (LINE, Web, Mobile - Single Member ID) -----
-// Profile: Name, Surname, NationalType, Citizen ID / Passport, Sex, Birthdate, Mobile, Email, Point balance, Address
-// Address: AddressNo, Building, Road, Soi, Subdistrict, District, Province, PostalCode
+// Profile: firstName, lastName, NationalType, Citizen ID / Passport, Gender, Birthdate, Mobile, Email, Point balance, Address
+// Address: AddressNo, Building, Road, Soi, Moo, Subdistrict, District, Province, ZipCode, Country + codes
 model Member {
   id            String   @id @default(uuid())
   memberId      String   @unique  // Single Member ID across channels
+  crmId         String?  // External CRM system ID
   lineUserId    String?  @unique
-  memberLevelId String?
-  memberLevel   MemberLevel? @relation(fields: [memberLevelId], references: [id])
+  levelCode     String?  // YELLOW | SILVER | BLACK (matches MemberLevel.code)
   // Profile
-  name          String   // Given name (required)
-  surname       String   // (required)
+  firstName     String   // Given name (required)
+  lastName      String   // (required)
   nationalType  String   // THAI | OTHER (required)
   citizenId     String?  // Thai Citizen ID (when nationalType = THAI)
   passport      String?  // Passport number (when nationalType = OTHER)
-  sex           String   // M | F (required)
-  birthdate     DateTime // (required)
+  gender        String   // M | F (required)
+  birthdate     DateTime? // optional
   mobile        String   // (required)
   email         String?
-  displayName   String?  // e.g. LINE display name
   channel       String?  // LINE | WEB | MOBILE
   consentPDPA   Boolean  @default(false)
   consentAt     DateTime?
@@ -74,14 +72,19 @@ model Member {
   updatedAt     DateTime @updatedAt
   pointBalance  Int      @default(0)
   // Address (addr_ prefix)
-  addr_addressNo   String?
-  addr_building    String?
-  addr_road        String?
-  addr_soi         String?
-  addr_subdistrict String?
-  addr_district    String?
-  addr_province    String?
-  addr_postalCode  String?
+  addr_addressNo       String?
+  addr_building        String?
+  addr_road            String?
+  addr_soi             String?
+  addr_moo             String?
+  addr_subdistrict     String?
+  addr_subdistrictCode String?
+  addr_district        String?
+  addr_districtCode    String?
+  addr_province        String?
+  addr_provinceCode    String?
+  addr_zipCode         String?
+  addr_country         String?
   pointLedgers  PointLedger[]
   redemptions   Redemption[]
   transactions  PointTransaction[]
@@ -165,6 +168,40 @@ model Banner {
   sortOrder  Int      @default(0)
   active    Boolean  @default(true)
   createdAt  DateTime @default(now())
+}
+
+// ----- Thailand address master (province, district, subdistrict) -----
+model Province {
+  id        String   @id @default(uuid())
+  code      String   @unique  // e.g. 10 for Bangkok
+  nameTh    String   // ชื่อจังหวัด
+  nameEn    String?  // Province name (English)
+  sortOrder Int      @default(0)
+  districts District[]
+}
+
+model District {
+  id         String   @id @default(uuid())
+  provinceId String
+  province   Province @relation(fields: [provinceId], references: [id])
+  code       String   // code within province
+  nameTh     String   // ชื่ออำเภอ/เขต
+  nameEn     String?
+  sortOrder  Int      @default(0)
+  subdistricts Subdistrict[]
+  @@unique([provinceId, code])
+}
+
+model Subdistrict {
+  id         String   @id @default(uuid())
+  districtId String
+  district   District @relation(fields: [districtId], references: [id])
+  code       String   // code within district
+  nameTh     String   // ชื่อตำบล/แขวง
+  nameEn     String?
+  zipCode    String?  // 5-digit postal code (some subdistricts have multiple; store primary or first)
+  sortOrder  Int      @default(0)
+  @@unique([districtId, code])
 }
 
 // ----- Branch & Service -----

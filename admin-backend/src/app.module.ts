@@ -12,6 +12,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { LineWebhookModule } from './line-webhook/line-webhook.module';
 import { BranchModule } from './branch/branch.module';
 import { AuditModule } from './audit/audit.module';
+import { LocationModule } from './location/location.module';
 
 @Module({
   controllers: [AppController],
@@ -20,6 +21,7 @@ import { AuditModule } from './audit/audit.module';
     PrismaModule,
     AuditModule,
     AuthModule,
+    LocationModule,
     MemberModule,
     PointsModule,
     RewardsModule,

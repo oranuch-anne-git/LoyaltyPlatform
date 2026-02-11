@@ -11,14 +11,16 @@ export class LineWebhookService {
     private notifications: NotificationsService,
   ) {}
 
-  async handleFollow(lineUserId: string, displayName?: string) {
+  /** LINE follow: create member if new, using profile display name as firstName. */
+  async handleFollow(lineUserId: string, lineDisplayName?: string) {
     const existing = await this.prisma.member.findUnique({
       where: { lineUserId },
     });
     if (existing) return { memberId: existing.memberId, isNew: false };
     const member = await this.member.create({
       lineUserId,
-      displayName: displayName || 'LINE User',
+      firstName: lineDisplayName?.trim() || 'LINE',
+      lastName: 'User',
       channel: 'LINE',
     });
     return { memberId: member.memberId, isNew: true };

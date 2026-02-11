@@ -4,10 +4,11 @@ Application built from **Loyalty_Platform_Feature_Summary_EN_with_NFR.md**: modu
 
 ## Architecture
 
-- **Admin Backend**: NestJS + Prisma (SQLite for dev), REST API (admin and full platform APIs). Project folder: `admin-backend/`.
-- **Customer Backend**: Separate NestJS API for customer-facing endpoints only (Member_GetInfo, Company_GetMemberLevel); proxies to Admin Backend. See `customer-backend/README.md`.
-- **Admin Portal**: React + Vite, SPA with dashboard, members, rewards, campaigns, audit logs
-- **LINE**: Webhook endpoint for follow/message (stub); ready for Rich Menu and deep links
+- **Admin Backend**: NestJS + Prisma (SQLite for dev), REST API (admin and full platform APIs). Project folder: `admin-backend/`. **Source of truth** for all business logic and data.
+- **Customer Backend**: Separate NestJS API for customer-facing endpoints only; **proxies** to Admin Backend (no duplicate logic). See `customer-backend/README.md`.
+- **Admin Portal**: React + Vite, SPA with dashboard, members, rewards, campaigns, audit logs. Calls Admin Backend.
+- **LINE**: Webhook endpoint for follow/message (stub); ready for Rich Menu and deep links.
+- **Shared contracts**: `packages/contracts` – TypeScript types and API contracts used by both backends so responses stay in sync. See [ARCHITECTURE.md](ARCHITECTURE.md) for API design, auth/audience, and where logic lives.
 
 ### Services (admin-backend modules)
 
@@ -23,6 +24,26 @@ Application built from **Loyalty_Platform_Feature_Summary_EN_with_NFR.md**: modu
 | Line Webhook  | LINE OA webhook (follow, message)            |
 | Auth          | Admin JWT login, RBAC                        |
 | Audit         | Log all critical actions                     |
+
+## Build all (once)
+
+From the repo root, install and build every project in order (contracts → admin-backend → customer-backend → admin-portal):
+
+**Windows (double-click):**  
+Double-click **`scripts\build-all.bat`** in Explorer. A console window will run the build and stay open when done (or on error).  
+If you see **EPERM / rename** during admin-backend (Prisma): close any running admin-backend or Node process, then run the script again—or open a **new** Command Prompt (outside Cursor), `cd admin-backend`, run `npx prisma generate`, then `npm run build`.
+
+**PowerShell (Windows):**
+```powershell
+.\scripts\build-all.ps1
+```
+
+**Bash (Linux/macOS/Git Bash):**
+```bash
+./scripts/build-all.sh
+```
+
+Then run each service with its own `npm run start:dev` or `npm run dev` (see Quick Start below).
 
 ## Quick Start
 
