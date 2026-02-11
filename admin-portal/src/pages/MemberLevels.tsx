@@ -6,7 +6,8 @@ type MemberLevel = {
   code: string;
   name: string;
   sortOrder: number;
-  privilegeDetail: string | null;
+  privilegeTh: string | null;
+  privilegeEn: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -15,7 +16,7 @@ export default function MemberLevels() {
   const [levels, setLevels] = useState<MemberLevel[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<MemberLevel | null>(null);
-  const [form, setForm] = useState({ name: '', sortOrder: 0, privilegeDetail: '' });
+  const [form, setForm] = useState({ name: '', sortOrder: 0, privilegeTh: '', privilegeEn: '' });
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -37,7 +38,8 @@ export default function MemberLevels() {
     setForm({
       name: level.name,
       sortOrder: level.sortOrder,
-      privilegeDetail: level.privilegeDetail ?? '',
+      privilegeTh: level.privilegeTh ?? '',
+      privilegeEn: level.privilegeEn ?? '',
     });
     setSaveError(null);
   };
@@ -55,7 +57,8 @@ export default function MemberLevels() {
       await apiPatch<MemberLevel>(`/members/levels/${editing.id}`, {
         name: form.name,
         sortOrder: form.sortOrder,
-        privilegeDetail: form.privilegeDetail || undefined,
+        privilegeTh: form.privilegeTh || undefined,
+        privilegeEn: form.privilegeEn || undefined,
       });
       loadLevels();
       closeEdit();
@@ -70,7 +73,7 @@ export default function MemberLevels() {
     <div className="container">
       <h1 style={{ marginBottom: '1rem', fontWeight: 600 }}>Member Levels</h1>
       <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
-        Yellow, Silver, Black tiers and their privilege details.
+        Yellow, Silver, Black tiers and their privilege details (Thai / English).
       </p>
       {error && (
         <div className="card" style={{ marginBottom: '1rem', borderColor: 'var(--danger)' }}>
@@ -108,19 +111,43 @@ export default function MemberLevels() {
                     Update
                   </button>
                 </div>
-                {level.privilegeDetail ? (
-                  <pre
-                    style={{
-                      margin: 0,
-                      whiteSpace: 'pre-wrap',
-                      wordBreak: 'break-word',
-                      fontSize: '0.9rem',
-                      lineHeight: 1.5,
-                      color: 'var(--text)',
-                    }}
-                  >
-                    {level.privilegeDetail}
-                  </pre>
+                {(level.privilegeTh || level.privilegeEn) ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {level.privilegeTh && (
+                      <div>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Privilege (TH)</span>
+                        <pre
+                          style={{
+                            margin: '0.25rem 0 0',
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-word',
+                            fontSize: '0.9rem',
+                            lineHeight: 1.5,
+                            color: 'var(--text)',
+                          }}
+                        >
+                          {level.privilegeTh}
+                        </pre>
+                      </div>
+                    )}
+                    {level.privilegeEn && (
+                      <div>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Privilege (EN)</span>
+                        <pre
+                          style={{
+                            margin: '0.25rem 0 0',
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-word',
+                            fontSize: '0.9rem',
+                            lineHeight: 1.5,
+                            color: 'var(--text)',
+                          }}
+                        >
+                          {level.privilegeEn}
+                        </pre>
+                      </div>
+                    )}
+                  </div>
                 ) : (
                   <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                     No privilege detail.
@@ -172,11 +199,20 @@ export default function MemberLevels() {
               />
             </div>
             <div className="form-group">
-              <label>Privilege detail (one line per item)</label>
+              <label>Privilege (Thai) — one line per item</label>
               <textarea
-                rows={8}
-                value={form.privilegeDetail}
-                onChange={(e) => setForm((f) => ({ ...f, privilegeDetail: e.target.value }))}
+                rows={6}
+                value={form.privilegeTh}
+                onChange={(e) => setForm((f) => ({ ...f, privilegeTh: e.target.value }))}
+                style={{ fontFamily: 'inherit', fontSize: '0.9rem' }}
+              />
+            </div>
+            <div className="form-group">
+              <label>Privilege (English) — one line per item</label>
+              <textarea
+                rows={6}
+                value={form.privilegeEn}
+                onChange={(e) => setForm((f) => ({ ...f, privilegeEn: e.target.value }))}
                 style={{ fontFamily: 'inherit', fontSize: '0.9rem' }}
               />
             </div>

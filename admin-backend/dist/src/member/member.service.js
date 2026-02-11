@@ -188,7 +188,8 @@ let MemberService = class MemberService {
             data: {
                 name: dto.name,
                 sortOrder: dto.sortOrder,
-                privilegeDetail: dto.privilegeDetail,
+                privilegeTh: dto.privilegeTh,
+                privilegeEn: dto.privilegeEn,
             },
         });
     }

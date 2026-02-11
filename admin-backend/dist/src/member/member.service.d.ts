@@ -508,7 +508,8 @@ export declare class MemberService {
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        privilegeDetail: string | null;
+        privilegeTh: string | null;
+        privilegeEn: string | null;
     }[]>;
     updateLevel(id: string, dto: UpdateMemberLevelDto): Promise<{
         code: string;
@@ -517,6 +518,7 @@ export declare class MemberService {
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        privilegeDetail: string | null;
+        privilegeTh: string | null;
+        privilegeEn: string | null;
     }>;
 }

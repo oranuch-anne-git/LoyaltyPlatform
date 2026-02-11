@@ -40,7 +40,8 @@ model MemberLevel {
   code            String   @unique  // YELLOW | SILVER | BLACK
   name            String   // Yellow Card | Silver Card | Black Card
   sortOrder       Int      @default(0)
-  privilegeDetail String?  // Benefit details as newline-separated text
+  privilegeTh     String?  // Benefit details (Thai) as newline-separated text
+  privilegeEn     String?  // Benefit details (English) as newline-separated text
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }

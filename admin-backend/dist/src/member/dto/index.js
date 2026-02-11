@@ -299,5 +299,10 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], UpdateMemberLevelDto.prototype, "privilegeDetail", void 0);
+], UpdateMemberLevelDto.prototype, "privilegeTh", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateMemberLevelDto.prototype, "privilegeEn", void 0);
 //# sourceMappingURL=index.js.map

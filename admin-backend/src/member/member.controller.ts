@@ -32,7 +32,7 @@ export class MemberController {
     return this.member.getLevels();
   }
 
-  /** Update a member level (name, sortOrder, privilegeDetail). */
+  /** Update a member level (name, sortOrder, privilegeTh, privilegeEn). */
   @Patch('levels/:id')
   @UseGuards(AuthGuard('jwt'))
   updateLevel(@Param('id') id: string, @Body() dto: UpdateMemberLevelDto) {

@@ -58,5 +58,6 @@ export declare class UpdateMemberDto {
 export declare class UpdateMemberLevelDto {
     name?: string;
     sortOrder?: number;
-    privilegeDetail?: string;
+    privilegeTh?: string;
+    privilegeEn?: string;
 }

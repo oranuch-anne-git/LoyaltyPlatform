@@ -30,15 +30,59 @@ export class MemberService {
   }
 
   /**
-   * Member_GetInfo: full member info by memberId (profile, address, point ledger, redemptions, transactions).
+   * Map admin backend member (flat) to customer API get-profile response structure.
+   * Response: { status: { success, message }, data: { id, memberId, ..., user: { profile, address } } }
+   */
+  private mapToGetProfileResponse(member: Record<string, unknown>) {
+    const addressKeys = [
+      'addr_addressNo', 'addr_moo', 'addr_building', 'addr_soi', 'addr_road',
+      'addr_subdistrict', 'addr_subdistrictCode', 'addr_district', 'addr_districtCode',
+      'addr_province', 'addr_provinceCode', 'addr_zipCode', 'addr_country',
+    ];
+    const address: Record<string, unknown> = {};
+    for (const key of addressKeys) {
+      address[key] = Object.prototype.hasOwnProperty.call(member, key) ? member[key] : null;
+    }
+    const user = {
+      firstName: member.firstName ?? null,
+      lastName: member.lastName ?? null,
+      nationalType: member.nationalType ?? null,
+      citizenId: member.citizenId ?? null,
+      passport: member.passport ?? null,
+      gender: member.gender ?? null,
+      birthdate: member.birthdate ?? null,
+      mobile: member.mobile ?? null,
+      email: member.email ?? null,
+      address,
+    };
+    const data = {
+      id: member.id,
+      memberId: member.memberId,
+      crmId: member.crmId ?? null,
+      lineUserId: member.lineUserId ?? null,
+      levelCode: member.levelCode ?? null,
+      active: member.active ?? true,
+      channel: member.channel ?? null,
+      pointBalance: member.pointBalance ?? 0,
+      user,
+    };
+    return {
+      status: { success: true, message: 'success' },
+      data,
+    };
+  }
+
+  /**
+   * Member_GetInfo: member profile by memberId.
    * Proxies to Admin Backend GET /api/members/get-info/by-member-id/:memberId
+   * and returns { status: { success, message }, data: { id, memberId, ..., user: { profile, address } } }.
    */
   async getInfo(memberId: string, authHeader?: string) {
     try {
       const { data } = await this.platformClient.get(`/api/members/get-info/by-member-id/${encodeURIComponent(memberId)}`, {
         headers: { Authorization: this.getAuthHeader(authHeader) },
       });
-      return data;
+      return this.mapToGetProfileResponse(data as Record<string, unknown>);
     } catch (err) {
       this.handleError(err);
     }

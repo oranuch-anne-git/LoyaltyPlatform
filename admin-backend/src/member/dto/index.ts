@@ -228,5 +228,9 @@ export class UpdateMemberLevelDto {
 
   @IsOptional()
   @IsString()
-  privilegeDetail?: string;
+  privilegeTh?: string;
+
+  @IsOptional()
+  @IsString()
+  privilegeEn?: string;
 }
