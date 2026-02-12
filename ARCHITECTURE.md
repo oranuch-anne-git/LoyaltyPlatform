@@ -5,7 +5,7 @@
 The platform uses **two backends** so that:
 
 - **Admin Backend** is the source of truth: database, business logic, and full APIs for the admin portal and internal use.
-- **Customer Backend** exposes only customer-facing APIs (member profile, levels, location by zip) and **proxies** to the Admin Backend. It does not hold business logic or a database.
+- **Customer Backend** exposes only customer-facing APIs (member profile, levels, location by zip or by district) and **proxies** to the Admin Backend. It does not hold business logic or a database.
 
 This gives:
 

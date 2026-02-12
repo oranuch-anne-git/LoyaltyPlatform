@@ -34,6 +34,33 @@ export class LocationService {
     });
   }
 
+  /** Get subdistricts by district code. If provinceCode is given, district is scoped to that province; else the first district with that code is used (district codes may be unique nationally in Thailand). */
+  async getSubdistrictsByDistrictCode(districtCode: string, provinceCode?: string) {
+    let district: { id: string } | null;
+    if (provinceCode?.trim()) {
+      const province = await this.prisma.province.findUnique({
+        where: { code: provinceCode.trim() },
+        select: { id: true },
+      });
+      if (!province) return [];
+      district = await this.prisma.district.findUnique({
+        where: { provinceId: province.id, code: districtCode.trim() },
+        select: { id: true },
+      });
+    } else {
+      district = await this.prisma.district.findFirst({
+        where: { code: districtCode.trim() },
+        select: { id: true },
+      });
+    }
+    if (!district) return [];
+    return this.prisma.subdistrict.findMany({
+      where: { districtId: district.id },
+      orderBy: [{ sortOrder: 'asc' }, { nameEn: 'asc' }],
+      select: { id: true, code: true, nameTh: true, nameEn: true, zipCode: true },
+    });
+  }
+
   /** Get provinces, districts, and subdistricts that have the given zip code (for zipcode-first dropdown filtering). */
   async getByZipCode(zipCode: string): Promise<LocationByZipResponse> {
     const raw = String(zipCode || '').trim();

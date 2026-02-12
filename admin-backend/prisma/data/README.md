@@ -1,4 +1,9 @@
-# Thailand geography data
+# Prisma data files
+
+- **thailand-geography.json** – Full Thailand address master (see below). Used by `prisma:seed-thailand`.
+- **export-for-render.json** – Created by `npm run prisma:export-for-render` in admin-backend. Contains member levels and province/district/subdistrict data exported from your local DB so you can import the same data into Render. See root README → “Making Render data the same as local”.
+
+## Thailand geography data
 
 This folder holds the full Thailand address master data (provinces, districts, subdistricts with postal codes) used by the seed.
 

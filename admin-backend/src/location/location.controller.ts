@@ -18,7 +18,14 @@ export class LocationController {
   }
 
   @Get('subdistricts')
-  getSubdistricts(@Query('districtId') districtId: string) {
+  getSubdistricts(
+    @Query('districtId') districtId: string,
+    @Query('districtCode') districtCode: string,
+    @Query('provinceCode') provinceCode: string,
+  ) {
+    if (districtCode?.trim()) {
+      return this.location.getSubdistrictsByDistrictCode(districtCode.trim(), provinceCode?.trim() || undefined);
+    }
     return this.location.getSubdistricts(districtId || '');
   }
 

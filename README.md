@@ -146,36 +146,83 @@ When you deploy on [Render](https://render.com), you typically have four service
 
 Deploy order: **loyalty-database** → **loyalty-admin-backend** → **loyalty-customer-backend** → **loyalty-admin-portal**. See [customer-backend/README.md](customer-backend/README.md) and [admin-portal/README.md](admin-portal/README.md) for step-by-step Render setup.
 
+#### One-time: update data to Render (from your PC)
+
+To push data to Render **once** (no redeploy, no Shell), run from your machine with Render’s **External Database URL**. The URL must end with **`?sslmode=require`**.
+
+**1. Get the URL**  
+Render → **loyalty-database** → **Connections** → copy **External Database URL**. If it has no `?sslmode=require`, add it:  
+`postgresql://user:pass@host/dbname` → `postgresql://user:pass@host/dbname?sslmode=require`
+
+**2a. Member levels only (full privilege text)**  
+In a terminal:
+```bash
+cd admin-backend
+set DATABASE_URL=postgresql://user:password@host/dbname?sslmode=require
+npm run prisma:sync-member-levels
+```
+(On PowerShell: `$env:DATABASE_URL="..."`. On Linux/macOS: `export DATABASE_URL="..."`.)  
+Then hard refresh the Member Levels page on the portal.
+
+**2b. Full Thailand locations (fix “No locations for this zip in DB”)**  
+Load all provinces, districts, subdistricts with zip codes so address-by-zip works on Render. Run **from your PC** with Render’s External URL (Shell is not available on free tier):
+```bash
+cd admin-backend
+set DATABASE_URL=postgresql://user:password@host/dbname?sslmode=require
+npm run prisma:load-locations-to-render
+```
+(On PowerShell: `$env:DATABASE_URL="..."`. On Linux/macOS: `export DATABASE_URL="..."`.)  
+The script replaces all province/district/subdistrict rows with the full Thailand set. Member levels are unchanged. If you don’t have `prisma/data/thailand-geography.json`, the script will fetch it from the internet (slower). See **Once from PC (locations)** below for the full checklist.
+
+**2c. Full data (member levels + provinces / districts / subdistricts) from local**  
+Export from local, then import into Render:
+```bash
+cd admin-backend
+npm run prisma:export-for-render
+set DATABASE_URL=postgresql://user:password@host/dbname?sslmode=require
+npm run prisma:import-for-render
+```
+Use the same External URL with `?sslmode=require`. After that, Render has the same member levels and location data as your local export.
+
+**3. Done**  
+No deploy or Shell needed. Refresh the admin portal to see the updated data.
+
+#### Member levels vs province / district / subdistrict
+
+- **Member levels** can be updated manually in the admin portal (Member Levels page) or via the sync script from your PC.
+- **Province, district, subdistrict** have **no edit UI or API**; they are reference data. They are loaded automatically on every Admin Backend deploy (seed-thailand runs in the build). Alternatively you can load once from your PC (see **2b**); then remove the seed-thailand step from the build to shorten deploy time.
+
 #### Loading member level, province, district, subdistrict data on Render
 
 **What’s already on Render**
 
-- Every Admin Backend **build** runs the seed (`prisma:seed`), which creates:
+- Every Admin Backend **build** runs the seed (`prisma:seed`), seed-thailand, then the Nest build. It creates:
   - **Member levels:** Yellow, Silver, Black (with sample privilege text).
-  - **Provinces / districts / subdistricts:** A small sample (e.g. Bangkok, Chiang Mai, Phuket with a few districts and subdistricts).
+  - **Provinces / districts / subdistricts:** Full Thailand set (seed-thailand runs in build).
   - Plus: roles, admin user, API key user, branches, demo members, rewards, campaigns.
 
-So you don’t need to “copy” member levels or the sample locations from local — they’re already created on Render by the seed.
+So you don’t need to “copy” member levels or full Thailand locations — they’re loaded on every deploy.
 
-**Full Thailand geography (all provinces, districts, subdistricts with zip codes)**
+**Alternative: load province / district / subdistrict from your PC (once)**
 
-1. **Ensure the data file is in the repo**  
-   The seed-thailand script uses `admin-backend/prisma/data/thailand-geography.json`. If that file is committed, Render will have it when it builds.
+If you prefer shorter build time, load locations once from your PC with Render’s **External Database URL** (see “One-time: update data to Render” → **2b**):
 
-2. **Run Thailand seed on Render (one-time)**  
-   - In Render, open the **loyalty-admin-backend** service.
-   - Open the **Shell** tab (or use a one-off job if you use it).
-   - In the shell, run (same idea as local, but using `node` so the script runs):
-     ```bash
-     cd /opt/render/project/src/admin-backend && node node_modules/ts-node/dist/bin.js prisma/seed-thailand.ts
-     ```
-   - If your repo path on Render is different, adjust the `cd` path. The script reads `DATABASE_URL` from the environment, so it will write to your Render Postgres.
-   - **Note:** This **replaces** all existing province, district, and subdistrict rows with the full Thailand set (it deletes then re-inserts). Member levels and other seed data are unchanged.
+```bash
+cd admin-backend
+set DATABASE_URL=postgresql://user:password@host/dbname?sslmode=require
+npm run prisma:load-locations-to-render
+```
 
-3. **Optional: run seed-thailand on every deploy**  
-   If you want full Thailand data on every deploy, add the same command to the Admin Backend **build** in Render (after `npm run prisma:seed`), e.g.  
-   `node node_modules/ts-node/dist/bin.js prisma/seed-thailand.ts`  
-   Build time will increase. The repo must contain `admin-backend/prisma/data/thailand-geography.json` (or the script will fetch from the public URL, which may be slower).
+The script replaces all province, district, and subdistrict rows with the full Thailand set. If you use this option, you can remove the seed-thailand step from the build in `admin-backend/package.json` to keep deploy time lower. The script uses `prisma/data/thailand-geography.json` if present; otherwise it fetches from the internet.
+
+**Once from PC (locations) — simplest**
+
+1. In Render Dashboard: Postgres → Connect → **External Database URL**. Copy it; add `?sslmode=require` at the end if missing.
+2. In the repo: `cd admin-backend`, copy `.env.render.example` to `.env.render`, paste the URL as the only line (or a line starting with `postgresql://`).
+3. Run: `npm run prisma:load-locations-to-render`. The script runs `prisma generate` then loads all Thailand locations.
+4. Optional: remove the `seed-thailand` step from the `build` script in `admin-backend/package.json` to shorten future deploys.
+
+Schema must use `provider = "postgresql"` in `admin-backend/prisma/schema.prisma`. If you get EPERM, close any running admin-backend or Node process and run again. Alternatively set `DATABASE_URL` in the terminal instead of using `.env.render`.
 
 **Re-running the main seed on Render**
 
@@ -185,11 +232,48 @@ So you don’t need to “copy” member levels or the sample locations from loc
   ```
 - The seed uses **upserts**, so it’s safe to run again; it won’t duplicate member levels or the sample province/district/subdistrict rows.
 
-**Copying custom data from local to Render**
+**Member levels on Render still show short text (not same as local)**
 
-- If you changed data only in your **local** SQLite (e.g. edited member level names or added custom provinces), there is no built-in “sync local → Render” tool. Options:
-  - **Re-run seed / seed-thailand on Render** (above) to get the standard data.
-  - **Export from local and import to Render:** export the relevant tables (e.g. with a small script or SQLite dump), convert to PostgreSQL-compatible SQL or CSV, then import into the Render Postgres (e.g. via `psql` or a one-off script that uses Prisma). This is custom work per table.
+**On free tier, Shell is not available.** The sync script runs automatically **during every deploy** of the Admin Backend (it’s part of the build). So the next time you deploy (or trigger a manual deploy), the full privilege text will be written to the database and the Member Levels page will show it.
+
+1. **Trigger a new deploy** of **loyalty-admin-backend** on Render (e.g. push a small commit and let Render deploy, or use “Manual Deploy” in the dashboard).
+2. Wait for the build to finish (it will run seed then sync-member-levels).
+3. **Hard refresh** the Member Levels page on the deployed admin portal (Ctrl+Shift+R or Cmd+Shift+R). The full Thai/English privilege text should appear.
+
+**If you need to fix it without redeploying** (e.g. you can’t deploy right now), run the sync from your PC using the **External** Database URL. The URL **must** end with `?sslmode=require` or the connection will fail:
+
+```bash
+cd admin-backend
+set DATABASE_URL=postgresql://user:password@dpg-xxxxx-external..../dbname?sslmode=require
+npm run prisma:sync-member-levels
+```
+On Linux/macOS: `export DATABASE_URL="..."`. Then hard refresh the portal.
+
+**If it still doesn’t work**  
+- Run `npm run prisma:verify-member-levels` with the same `DATABASE_URL` to see what’s in the DB (length of privilegeTh per level).  
+- Confirm you’re opening the **deployed** admin portal URL (e.g. `https://loyalty-admin-portal.onrender.com`), not localhost.
+
+**Making Render data the same as local (member levels + province/district/subdistrict)**
+
+If the data on Render doesn’t match your local DB (e.g. you edited member level text or ran full Thailand seed locally), use the export/import scripts so Render gets the same data.
+
+1. **Export from local** (uses your local `DATABASE_URL` in `admin-backend/.env`):
+   ```bash
+   cd admin-backend
+   npm run prisma:export-for-render
+   ```
+   This creates `admin-backend/prisma/data/export-for-render.json` with all MemberLevel, Province, District, and Subdistrict rows.
+
+2. **Import into Render** (uses `DATABASE_URL` you set for the target DB). From your machine you must use Render’s **External** Database URL (from loyalty-database → Connections), because the Internal URL is only reachable from Render’s network.
+   ```bash
+   cd admin-backend
+   set DATABASE_URL=postgresql://user:pass@dpg-xxxxx-external.oregon-postgres.render.com/dbname?sslmode=require
+   npm run prisma:import-for-render
+   ```
+   (On Linux/macOS use `export DATABASE_URL=...`.) Replace the URL with the **External Database URL** from your Render PostgreSQL service. The script upserts member levels and location data into that database, so Render will have the same content as your export.
+
+3. **Commit the export file (optional)**  
+   If you want the same data to be applied on every deploy or by others, commit `prisma/data/export-for-render.json` and run the import step when needed (or add it to your deploy process).
 
 ## API Reference
 

@@ -25,12 +25,17 @@ export class LocationController {
     return this.location.getDistrictsByZipCode(zipCode || '', authorization);
   }
 
-  /** List subdistricts by zip code. */
+  /** List subdistricts by district (districtCode; optional provinceCode) or by zip code (zipCode). Prefer districtCode when provided. */
   @Get('subdistricts')
-  getSubdistrictsByZipCode(
+  getSubdistricts(
+    @Query('districtCode') districtCode: string,
+    @Query('provinceCode') provinceCode: string,
     @Query('zipCode') zipCode: string,
     @Headers('authorization') authorization?: string,
   ) {
+    if (districtCode?.trim()) {
+      return this.location.getSubdistrictsByDistrictCode(districtCode.trim(), provinceCode?.trim() || undefined, authorization);
+    }
     return this.location.getSubdistrictsByZipCode(zipCode || '', authorization);
   }
 }

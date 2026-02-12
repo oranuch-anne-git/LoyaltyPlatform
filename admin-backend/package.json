@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "prebuild": "node node_modules/prisma/build/index.js generate",
-    "build": "node node_modules/prisma/build/index.js generate && node node_modules/prisma/build/index.js db push && node node_modules/ts-node/dist/bin.js prisma/seed.ts && node node_modules/@nestjs/cli/bin/nest.js build",
+    "build": "node node_modules/prisma/build/index.js generate && node node_modules/prisma/build/index.js db push && node node_modules/ts-node/dist/bin.js prisma/seed.ts && node node_modules/ts-node/dist/bin.js prisma/scripts/sync-member-levels-to-render.ts && node node_modules/ts-node/dist/bin.js prisma/seed-thailand.ts && node node_modules/@nestjs/cli/bin/nest.js build",
     "start": "node node_modules/@nestjs/cli/bin/nest.js start",
     "start:dev": "node node_modules/@nestjs/cli/bin/nest.js start --watch",
     "start:prod": "node dist/main",
@@ -14,7 +14,12 @@
     "prisma:seed": "ts-node prisma/seed.ts",
     "prisma:download-thailand": "node prisma/scripts/download-thailand-geography.js",
     "prisma:seed-thailand": "ts-node prisma/seed-thailand.ts",
-    "prisma:clear": "ts-node prisma/clear-sample-data.ts"
+    "prisma:load-locations-to-render": "ts-node prisma/scripts/load-locations-to-render.ts",
+    "prisma:clear": "ts-node prisma/clear-sample-data.ts",
+    "prisma:export-for-render": "ts-node prisma/scripts/export-for-render.ts",
+    "prisma:import-for-render": "ts-node prisma/scripts/import-for-render.ts",
+    "prisma:sync-member-levels": "ts-node prisma/scripts/sync-member-levels-to-render.ts",
+    "prisma:verify-member-levels": "ts-node prisma/scripts/verify-member-levels-db.ts"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

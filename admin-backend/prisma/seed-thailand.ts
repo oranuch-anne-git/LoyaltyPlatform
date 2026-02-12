@@ -7,6 +7,9 @@
  *
  * Uses prisma/data/thailand-geography.json if present; otherwise fetches from URL.
  * To download the data file: npm run prisma:download-thailand
+ *
+ * When targeting Render (Postgres): set DATABASE_URL to Render External URL with ?sslmode=require.
+ * Schema must be provider = "postgresql" in prisma/schema.prisma. Run "npx prisma generate" first.
  */
 
 import * as fs from 'fs';
