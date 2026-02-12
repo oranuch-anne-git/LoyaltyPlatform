@@ -369,7 +369,8 @@ export default function MemberDetail() {
                   const useZipFilter = zipFilter && (address.addr_zipCode || '').trim() === zipFilterZip;
                   const provinceOptions = useZipFilter ? zipFilter.provinces : provinces;
                   const districtOptions = useZipFilter ? zipFilter.districts : districts;
-                  const subdistrictOptions = useZipFilter ? zipFilter.subdistricts : subdistricts;
+                  // When a district is selected, show only subdistricts for that district; otherwise (zip-only) show all subdistricts for the zip
+                  const subdistrictOptions = selectedDistrictId ? subdistricts : (useZipFilter ? zipFilter.subdistricts : subdistricts);
                   return (
                     <>
                       <div className="form-group"><label>Province (จังหวัด)</label>
