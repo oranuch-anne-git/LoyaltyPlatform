@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "prebuild": "node node_modules/prisma/build/index.js generate",
-    "build": "node node_modules/prisma/build/index.js generate && node node_modules/prisma/build/index.js db push && npm run prisma:seed && node node_modules/@nestjs/cli/bin/nest.js build",
+    "build": "node node_modules/prisma/build/index.js generate && node node_modules/prisma/build/index.js db push && node node_modules/ts-node/dist/bin.js prisma/seed.ts && node node_modules/@nestjs/cli/bin/nest.js build",
     "start": "node node_modules/@nestjs/cli/bin/nest.js start",
     "start:dev": "node node_modules/@nestjs/cli/bin/nest.js start --watch",
     "start:prod": "node dist/main",
