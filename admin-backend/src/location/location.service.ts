@@ -44,7 +44,7 @@ export class LocationService {
       });
       if (!province) return [];
       district = await this.prisma.district.findUnique({
-        where: { provinceId: province.id, code: districtCode.trim() },
+        where: { provinceId_code: { provinceId: province.id, code: districtCode.trim() } },
         select: { id: true },
       });
     } else {
