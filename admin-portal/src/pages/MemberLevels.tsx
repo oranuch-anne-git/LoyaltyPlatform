@@ -52,8 +52,6 @@ export default function MemberLevels() {
         l.code.toLowerCase().includes(q) ||
         l.name.toLowerCase().includes(q) ||
         String(l.sortOrder).includes(q) ||
-        (l.privilegeTh ?? '').toLowerCase().includes(q) ||
-        (l.privilegeEn ?? '').toLowerCase().includes(q) ||
         l.createdAt.toLowerCase().includes(q) ||
         l.updatedAt.toLowerCase().includes(q),
     );
@@ -148,7 +146,7 @@ export default function MemberLevels() {
             <label>Search</label>
             <input
               type="text"
-              placeholder="Code, Name, Order, PrivilegeTH, PrivilegeEN, createdAt, updatedAt..."
+              placeholder="Code, Name, Order, createdAt, updatedAt..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
