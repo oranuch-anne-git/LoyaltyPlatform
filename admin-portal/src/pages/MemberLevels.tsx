@@ -169,8 +169,6 @@ export default function MemberLevels() {
                   <th>Code</th>
                   <th>Name</th>
                   <th>Order</th>
-                  <th>PrivilegeTH</th>
-                  <th>PrivilegeEN</th>
                   <th>createdAt</th>
                   <th>updatedAt</th>
                   <th></th>
@@ -182,12 +180,6 @@ export default function MemberLevels() {
                     <td><code>{level.code}</code></td>
                     <td>{level.name}</td>
                     <td>{level.sortOrder}</td>
-                    <td style={{ maxWidth: 200, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                      {level.privilegeTh ?? '—'}
-                    </td>
-                    <td style={{ maxWidth: 200, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                      {level.privilegeEn ?? '—'}
-                    </td>
                     <td style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
                       {new Date(level.createdAt).toLocaleString()}
                     </td>
