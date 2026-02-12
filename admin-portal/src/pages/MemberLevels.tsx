@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { apiGet, apiPatch } from '../api';
+import { useEffect, useMemo, useState } from 'react';
+import { apiGet, apiPatch, apiPost } from '../api';
 
 type MemberLevel = {
   id: string;
@@ -12,11 +12,21 @@ type MemberLevel = {
   updatedAt: string;
 };
 
+const defaultForm = {
+  code: '',
+  name: '',
+  sortOrder: 0,
+  privilegeTh: '',
+  privilegeEn: '',
+};
+
 export default function MemberLevels() {
   const [levels, setLevels] = useState<MemberLevel[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
   const [editing, setEditing] = useState<MemberLevel | null>(null);
-  const [form, setForm] = useState({ name: '', sortOrder: 0, privilegeTh: '', privilegeEn: '' });
+  const [creating, setCreating] = useState(false);
+  const [form, setForm] = useState(defaultForm);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -33,9 +43,27 @@ export default function MemberLevels() {
     loadLevels();
   }, []);
 
+  const filteredLevels = useMemo(() => {
+    if (!levels) return [];
+    const q = search.trim().toLowerCase();
+    if (!q) return levels;
+    return levels.filter(
+      (l) =>
+        l.code.toLowerCase().includes(q) ||
+        l.name.toLowerCase().includes(q) ||
+        String(l.sortOrder).includes(q) ||
+        (l.privilegeTh ?? '').toLowerCase().includes(q) ||
+        (l.privilegeEn ?? '').toLowerCase().includes(q) ||
+        l.createdAt.toLowerCase().includes(q) ||
+        l.updatedAt.toLowerCase().includes(q),
+    );
+  }, [levels, search]);
+
   const openEdit = (level: MemberLevel) => {
     setEditing(level);
+    setCreating(false);
     setForm({
+      code: level.code,
       name: level.name,
       sortOrder: level.sortOrder,
       privilegeTh: level.privilegeTh ?? '',
@@ -44,8 +72,16 @@ export default function MemberLevels() {
     setSaveError(null);
   };
 
-  const closeEdit = () => {
+  const openCreate = () => {
+    setCreating(true);
     setEditing(null);
+    setForm(defaultForm);
+    setSaveError(null);
+  };
+
+  const closeModal = () => {
+    setEditing(null);
+    setCreating(false);
     setSaveError(null);
   };
 
@@ -61,13 +97,39 @@ export default function MemberLevels() {
         privilegeEn: form.privilegeEn || undefined,
       });
       loadLevels();
-      closeEdit();
+      closeModal();
     } catch (e) {
       setSaveError(e instanceof Error ? e.message : 'Update failed');
     } finally {
       setSaving(false);
     }
   };
+
+  const handleCreate = async () => {
+    if (!form.code.trim() || !form.name.trim()) {
+      setSaveError('Code and Name are required');
+      return;
+    }
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await apiPost<MemberLevel>('/members/levels', {
+        code: form.code.trim(),
+        name: form.name.trim(),
+        sortOrder: form.sortOrder,
+        privilegeTh: form.privilegeTh || undefined,
+        privilegeEn: form.privilegeEn || undefined,
+      });
+      loadLevels();
+      closeModal();
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : 'Create failed');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const showModal = editing || creating;
 
   return (
     <div className="container">
@@ -80,86 +142,74 @@ export default function MemberLevels() {
           <p style={{ color: 'var(--danger)', margin: 0 }}>{error}</p>
         </div>
       )}
+      <div className="card" style={{ marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'flex-end' }}>
+          <div className="form-group" style={{ marginBottom: 0, flex: '1 1 280px' }}>
+            <label>Search</label>
+            <input
+              type="text"
+              placeholder="Code, Name, Order, PrivilegeTH, PrivilegeEN, createdAt, updatedAt..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <button type="button" className="btn" onClick={openCreate}>
+            Create new level
+          </button>
+        </div>
+      </div>
       <div className="card">
         {levels === null ? (
           <p>Loading…</p>
-        ) : levels.length === 0 ? (
-          <p>No member levels.</p>
+        ) : filteredLevels.length === 0 ? (
+          <p>{search.trim() ? 'No matching member levels.' : 'No member levels.'}</p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {levels.map((level) => (
-              <div
-                key={level.id}
-                style={{
-                  border: '1px solid var(--border)',
-                  borderRadius: '8px',
-                  padding: '1rem 1.25rem',
-                  background: 'var(--bg-subtle)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <span className="badge" style={{ fontSize: '0.9rem' }}>
-                      {level.code}
-                    </span>
-                    <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>{level.name}</h2>
-                    <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-                      Order: {level.sortOrder}
-                    </span>
-                  </div>
-                  <button type="button" className="btn" onClick={() => openEdit(level)}>
-                    Update
-                  </button>
-                </div>
-                {(level.privilegeTh || level.privilegeEn) ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    {level.privilegeTh && (
-                      <div>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Privilege (TH)</span>
-                        <pre
-                          style={{
-                            margin: '0.25rem 0 0',
-                            whiteSpace: 'pre-wrap',
-                            wordBreak: 'break-word',
-                            fontSize: '0.9rem',
-                            lineHeight: 1.5,
-                            color: 'var(--text)',
-                          }}
-                        >
-                          {level.privilegeTh}
-                        </pre>
-                      </div>
-                    )}
-                    {level.privilegeEn && (
-                      <div>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Privilege (EN)</span>
-                        <pre
-                          style={{
-                            margin: '0.25rem 0 0',
-                            whiteSpace: 'pre-wrap',
-                            wordBreak: 'break-word',
-                            fontSize: '0.9rem',
-                            lineHeight: 1.5,
-                            color: 'var(--text)',
-                          }}
-                        >
-                          {level.privilegeEn}
-                        </pre>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                    No privilege detail.
-                  </p>
-                )}
-              </div>
-            ))}
+          <div style={{ overflowX: 'auto' }}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Name</th>
+                  <th>Order</th>
+                  <th>PrivilegeTH</th>
+                  <th>PrivilegeEN</th>
+                  <th>createdAt</th>
+                  <th>updatedAt</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredLevels.map((level) => (
+                  <tr key={level.id}>
+                    <td><code>{level.code}</code></td>
+                    <td>{level.name}</td>
+                    <td>{level.sortOrder}</td>
+                    <td style={{ maxWidth: 200, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                      {level.privilegeTh ?? '—'}
+                    </td>
+                    <td style={{ maxWidth: 200, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                      {level.privilegeEn ?? '—'}
+                    </td>
+                    <td style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                      {new Date(level.createdAt).toLocaleString()}
+                    </td>
+                    <td style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                      {new Date(level.updatedAt).toLocaleString()}
+                    </td>
+                    <td>
+                      <button type="button" className="btn btn-ghost" style={{ padding: '0.4rem 0.8rem' }} onClick={() => openEdit(level)}>
+                        Update
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
 
-      {editing && (
+      {showModal && (
         <div
           style={{
             position: 'fixed',
@@ -171,17 +221,28 @@ export default function MemberLevels() {
             zIndex: 1000,
             padding: '1rem',
           }}
-          onClick={closeEdit}
+          onClick={closeModal}
         >
           <div
             className="card"
             style={{ maxWidth: '520px', width: '100%', maxHeight: '90vh', overflow: 'auto' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 style={{ marginTop: 0 }}>Edit: {editing.code}</h2>
+            <h2 style={{ marginTop: 0 }}>{creating ? 'Create member level' : `Edit: ${editing?.code}`}</h2>
             {saveError && (
               <p style={{ color: 'var(--danger)', marginBottom: '1rem' }}>{saveError}</p>
             )}
+            <div className="form-group">
+              <label>Code</label>
+              <input
+                type="text"
+                value={form.code}
+                onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
+                disabled={!!editing}
+                placeholder="e.g. YELLOW"
+              />
+              {editing && <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Code cannot be changed when editing.</span>}
+            </div>
             <div className="form-group">
               <label>Name</label>
               <input
@@ -201,7 +262,7 @@ export default function MemberLevels() {
             <div className="form-group">
               <label>Privilege (Thai) — one line per item</label>
               <textarea
-                rows={6}
+                rows={4}
                 value={form.privilegeTh}
                 onChange={(e) => setForm((f) => ({ ...f, privilegeTh: e.target.value }))}
                 style={{ fontFamily: 'inherit', fontSize: '0.9rem' }}
@@ -210,19 +271,25 @@ export default function MemberLevels() {
             <div className="form-group">
               <label>Privilege (English) — one line per item</label>
               <textarea
-                rows={6}
+                rows={4}
                 value={form.privilegeEn}
                 onChange={(e) => setForm((f) => ({ ...f, privilegeEn: e.target.value }))}
                 style={{ fontFamily: 'inherit', fontSize: '0.9rem' }}
               />
             </div>
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
-              <button type="button" className="btn btn-ghost" onClick={closeEdit}>
+              <button type="button" className="btn btn-ghost" onClick={closeModal}>
                 Cancel
               </button>
-              <button type="button" className="btn" onClick={handleSave} disabled={saving}>
-                {saving ? 'Saving…' : 'Save'}
-              </button>
+              {creating ? (
+                <button type="button" className="btn" onClick={handleCreate} disabled={saving}>
+                  {saving ? 'Creating…' : 'Create'}
+                </button>
+              ) : (
+                <button type="button" className="btn" onClick={handleSave} disabled={saving}>
+                  {saving ? 'Saving…' : 'Save'}
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -276,3 +276,45 @@ No env vars to set on the database itself. Other services (only **loyalty-admin-
 - **Admin Backend** and **Customer Backend** `JWT_SECRET`: identical.
 
 So: the **setup on Render (4 services, types, regions) is correct**. Confirm the **environment variables** on each service match the table above; that’s what “correct value on Render” means in practice.
+
+---
+
+### manual build ###
+
+UI: npm run dev 
+backend : npm run start:dev
+
+
+**How to commit and push to GitHub yourself**
+
+1. **Open a terminal** in the repo folder (e.g. `LoyaltyPlatform`).
+
+2. **See what changed**
+   ```bash
+   git status
+   ```
+
+3. **Stage files** (only what you want in the commit)
+   ```bash
+   git add path/to/file1 path/to/file2
+   ```
+   Or stage everything (including things you might not want, like `.env`):
+   ```bash
+   git add .
+   ```
+
+4. **Commit**
+   ```bash
+   git commit -m "Short description of the change"
+   ```
+
+5. **Push to GitHub**
+   ```bash
+   git push origin main
+   ```
+   Use your branch name instead of `main` if you use another branch.
+
+**Tips**
+- Don’t commit secrets: keep `.env` out of the repo (add it to `.gitignore`).
+- Don’t commit build outputs: e.g. `dist/`, `node_modules/` are usually ignored.
+- If you get “Permission denied” or “Authentication failed”, set up a **Personal Access Token** in GitHub (Settings → Developer settings → Personal access tokens) and use it as the password when Git asks.

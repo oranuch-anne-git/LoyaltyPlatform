@@ -219,6 +219,26 @@ export class UpdateMemberDto {
   active?: boolean;
 }
 
+export class CreateMemberLevelDto {
+  @IsString()
+  code: string;
+
+  @IsString()
+  name: string;
+
+  @IsOptional()
+  @IsNumber()
+  sortOrder?: number;
+
+  @IsOptional()
+  @IsString()
+  privilegeTh?: string;
+
+  @IsOptional()
+  @IsString()
+  privilegeEn?: string;
+}
+
 export class UpdateMemberLevelDto {
   @IsOptional()
   @IsString()

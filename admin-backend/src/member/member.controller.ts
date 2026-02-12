@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { MemberService } from './member.service';
-import { CreateMemberDto, UpdateMemberDto, UpdateMemberLevelDto } from './dto';
+import { CreateMemberDto, CreateMemberLevelDto, UpdateMemberDto, UpdateMemberLevelDto } from './dto';
 
 @Controller('api/members')
 export class MemberController {
@@ -30,6 +30,13 @@ export class MemberController {
   @UseGuards(AuthGuard('jwt'))
   getLevels() {
     return this.member.getLevels();
+  }
+
+  /** Create a new member level. */
+  @Post('levels')
+  @UseGuards(AuthGuard('jwt'))
+  createLevel(@Body() dto: CreateMemberLevelDto) {
+    return this.member.createLevel(dto);
   }
 
   /** Update a member level (name, sortOrder, privilegeTh, privilegeEn). */

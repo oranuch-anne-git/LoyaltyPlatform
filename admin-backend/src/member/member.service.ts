@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateMemberDto, UpdateMemberDto, UpdateMemberLevelDto } from './dto';
+import { CreateMemberDto, CreateMemberLevelDto, UpdateMemberDto, UpdateMemberLevelDto } from './dto';
 
 @Injectable()
 export class MemberService {
@@ -178,6 +178,18 @@ export class MemberService {
   /** Company_GetMemberLevel: list member levels ordered by sortOrder (id, code, name, benefits, etc.) */
   async getLevels() {
     return this.prisma.memberLevel.findMany({ orderBy: { sortOrder: 'asc' } });
+  }
+
+  async createLevel(dto: CreateMemberLevelDto) {
+    return this.prisma.memberLevel.create({
+      data: {
+        code: dto.code,
+        name: dto.name,
+        sortOrder: dto.sortOrder ?? 0,
+        privilegeTh: dto.privilegeTh ?? null,
+        privilegeEn: dto.privilegeEn ?? null,
+      },
+    });
   }
 
   async updateLevel(id: string, dto: UpdateMemberLevelDto) {
