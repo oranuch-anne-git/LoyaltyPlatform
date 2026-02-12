@@ -26,7 +26,10 @@ let LocationController = class LocationController {
     getDistricts(provinceCode) {
         return this.location.getDistricts(provinceCode || '');
     }
-    getSubdistricts(districtId) {
+    getSubdistricts(districtId, districtCode, provinceCode) {
+        if (districtCode?.trim()) {
+            return this.location.getSubdistrictsByDistrictCode(districtCode.trim(), provinceCode?.trim() || undefined);
+        }
         return this.location.getSubdistricts(districtId || '');
     }
     getByZipCode(zipCode) {
@@ -50,8 +53,10 @@ __decorate([
 __decorate([
     (0, common_1.Get)('subdistricts'),
     __param(0, (0, common_1.Query)('districtId')),
+    __param(1, (0, common_1.Query)('districtCode')),
+    __param(2, (0, common_1.Query)('provinceCode')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", void 0)
 ], LocationController.prototype, "getSubdistricts", null);
 __decorate([

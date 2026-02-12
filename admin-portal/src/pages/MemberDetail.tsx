@@ -146,18 +146,22 @@ export default function MemberDetail() {
   }, [address.addr_provinceCode, address.addr_districtCode, zipFilter]);
 
   useEffect(() => {
-    if (!selectedDistrictCode) {
+    const codeToFetch = selectedDistrictCode || (address.addr_districtCode != null ? String(address.addr_districtCode).trim() : '');
+    if (!selectedDistrictId) {
       setSubdistricts([]);
       return;
     }
     setSubdistricts([]);
-    apiGet<{ id: string; code: string; nameTh: string; nameEn: string | null; zipCode: string | null }[] | { data?: { id: string; code: string; nameTh: string; nameEn: string | null; zipCode: string | null }[] }>(`/subdistricts?districtCode=${encodeURIComponent(selectedDistrictCode)}`)
+    const url = codeToFetch
+      ? `/subdistricts?districtCode=${encodeURIComponent(codeToFetch)}`
+      : `/subdistricts?districtId=${encodeURIComponent(selectedDistrictId)}`;
+    apiGet<{ id: string; code: string; nameTh: string; nameEn: string | null; zipCode: string | null }[] | { data?: { id: string; code: string; nameTh: string; nameEn: string | null; zipCode: string | null }[] }>(url)
       .then((res) => {
         const list = Array.isArray(res) ? res : (res?.data ?? []);
         setSubdistricts(Array.isArray(list) ? list : []);
       })
       .catch(() => setSubdistricts([]));
-  }, [selectedDistrictCode]);
+  }, [selectedDistrictId, selectedDistrictCode, address.addr_districtCode]);
 
   const fetchByZip = (zip: string) => {
     if (zip.length !== 5 || !/^\d{5}$/.test(zip)) return;
@@ -393,8 +397,8 @@ export default function MemberDetail() {
                   const useZipFilter = zipFilter && (address.addr_zipCode || '').trim() === zipFilterZip;
                   const provinceOptions = useZipFilter ? zipFilter.provinces : provinces;
                   const districtOptions = useZipFilter ? zipFilter.districts : districts;
-                  // When a district is selected, show only subdistricts for that district (fetched by districtCode); otherwise show all for zip or empty
-                  const subdistrictOptionsRaw = selectedDistrictCode ? subdistricts : (useZipFilter ? zipFilter.subdistricts : subdistricts);
+                  // When a district is selected, always show district-scoped subdistricts only (never the full zip list)
+                  const subdistrictOptionsRaw = selectedDistrictId ? subdistricts : (useZipFilter ? zipFilter.subdistricts : subdistricts);
                   const subdistrictOptions = Array.isArray(subdistrictOptionsRaw) ? subdistrictOptionsRaw : [];
                   return (
                     <>

@@ -3,20 +3,20 @@ export declare class LocationController {
     private location;
     constructor(location: LocationService);
     getProvinces(): Promise<{
-        code: string;
         id: string;
+        code: string;
         nameTh: string;
         nameEn: string | null;
     }[]>;
     getDistricts(provinceCode: string): Promise<{
-        code: string;
         id: string;
+        code: string;
         nameTh: string;
         nameEn: string | null;
     }[]>;
-    getSubdistricts(districtId: string): Promise<{
-        code: string;
+    getSubdistricts(districtId: string, districtCode: string, provinceCode: string): Promise<{
         id: string;
+        code: string;
         nameTh: string;
         nameEn: string | null;
         zipCode: string | null;

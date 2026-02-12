@@ -113,6 +113,27 @@ async function main() {
             update: { nameTh: s.nameTh, nameEn: s.nameEn, zipCode: s.zipCode },
         });
     }
+    const yellowTh = 'ลูกค้าใหม่\n25 บาท = 1 คะแนน\nส่วนลด 3%\nโปรโมชั่นพิเศษในวันเกิด / คะแนนพิเศษ\n800 คะแนน แลกรับส่วนลด 100 บาท\nคะแนนมีอายุ 3 ปีนับจากวันที่ได้รับ (การนับคะแนนหมดอายุจะนับตามปีปฏิทิน)';
+    const yellowEn = 'New Customer\n25 Baht = 1 Point\nDiscount 3%\nBirthday Promotion / Special Point\nRedeem 800 points for discounts 100 Baht\nEach point valid 3 years from date received (expiration follows calendar year)';
+    await prisma.memberLevel.upsert({
+        where: { code: 'YELLOW' },
+        create: { code: 'YELLOW', name: 'Yellow Card', sortOrder: 1, privilegeTh: yellowTh, privilegeEn: yellowEn },
+        update: { privilegeTh: yellowTh, privilegeEn: yellowEn },
+    });
+    const silverTh = 'ยอดใช้จ่ายสะสม 50,000 บาท\n25 บาท = 1 คะแนน\nส่วนลด 5%\nโปรโมชั่นพิเศษในวันเกิด / คะแนนพิเศษ / ของขวัญวันเกิด\nช่วยเหลือฉุกเฉินนอกสถานที่ 1 ครั้ง/ปี\n800 คะแนน แลกรับส่วนลด 100 บาท\nคะแนนมีอายุ 3 ปีนับจากวันที่ได้รับ';
+    const silverEn = 'Accumulated spend 50,000 Baht\n25 Baht = 1 Point\nDiscount 5%\nBirthday Promotion / Special Point / Birthday Gift\nEmergency assistance 1 time/year\nRedeem 800 points for discount 100 Baht\nPoints valid 3 years from date received';
+    await prisma.memberLevel.upsert({
+        where: { code: 'SILVER' },
+        create: { code: 'SILVER', name: 'Silver Card', sortOrder: 2, privilegeTh: silverTh, privilegeEn: silverEn },
+        update: { privilegeTh: silverTh, privilegeEn: silverEn },
+    });
+    const blackTh = 'ยอดใช้จ่ายสะสม 100,000 บาท\n25 บาท = 1 คะแนน\nส่วนลด 7%\nบริการ Contact Center ทันที\nโปรโมชั่นพิเศษในวันเกิด / คะแนนพิเศษ / ของขวัญวันเกิด\nช่วยเหลือฉุกเฉินนอกสถานที่ 2 ครั้ง/ปี\n800 คะแนน แลกรับส่วนลด 100 บาท\nคะแนนมีอายุ 3 ปีนับจากวันที่ได้รับ';
+    const blackEn = 'Accumulated spend 100,000 Baht\n25 Baht = 1 Point\nDiscount 7%\nPriority Contact Center\nBirthday Promotion / Special Point / Birthday Gift\nEmergency assistance 2 times/year\nRedeem 800 points for discount 100 Baht\nPoints valid 3 years from date received';
+    await prisma.memberLevel.upsert({
+        where: { code: 'BLACK' },
+        create: { code: 'BLACK', name: 'Black Card', sortOrder: 3, privilegeTh: blackTh, privilegeEn: blackEn },
+        update: { privilegeTh: blackTh, privilegeEn: blackEn },
+    });
     const levels = await prisma.memberLevel.findMany({ orderBy: { sortOrder: 'asc' } });
     const levelYellow = levels.find((l) => l.code === 'YELLOW')?.code;
     const levelSilver = levels.find((l) => l.code === 'SILVER')?.code;

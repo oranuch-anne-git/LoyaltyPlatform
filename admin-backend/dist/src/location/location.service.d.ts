@@ -4,20 +4,27 @@ export declare class LocationService {
     private prisma;
     constructor(prisma: PrismaService);
     getProvinces(): Promise<{
-        code: string;
         id: string;
+        code: string;
         nameTh: string;
         nameEn: string | null;
     }[]>;
     getDistricts(provinceCode: string): Promise<{
-        code: string;
         id: string;
+        code: string;
         nameTh: string;
         nameEn: string | null;
     }[]>;
     getSubdistricts(districtId: string): Promise<{
-        code: string;
         id: string;
+        code: string;
+        nameTh: string;
+        nameEn: string | null;
+        zipCode: string | null;
+    }[]>;
+    getSubdistrictsByDistrictCode(districtCode: string, provinceCode?: string): Promise<{
+        id: string;
+        code: string;
         nameTh: string;
         nameEn: string | null;
         zipCode: string | null;
