@@ -116,15 +116,17 @@ export default function MemberDetail() {
     }
     if (zipFilter) {
       setDistricts(zipFilter.districts);
-      const match = zipFilter.districts.find((d) => d.code === address.addr_districtCode);
+      const districtCode = address.addr_districtCode != null ? String(address.addr_districtCode).trim() : '';
+      const match = zipFilter.districts.find((d) => String(d.code).trim() === districtCode);
       if (match) setSelectedDistrictId(match.id);
       else setSelectedDistrictId('');
       return;
     }
     apiGet<{ id: string; code: string; nameTh: string; nameEn: string | null }[]>(`/districts?provinceCode=${encodeURIComponent(address.addr_provinceCode)}`)
       .then((list) => {
-        setDistricts(list);
-        const match = list.find((d) => d.code === address.addr_districtCode);
+        setDistricts(Array.isArray(list) ? list : []);
+        const districtCode = address.addr_districtCode != null ? String(address.addr_districtCode).trim() : '';
+        const match = (Array.isArray(list) ? list : []).find((d) => String(d.code).trim() === districtCode);
         if (match) setSelectedDistrictId(match.id);
         else setSelectedDistrictId('');
       })
@@ -136,23 +138,31 @@ export default function MemberDetail() {
       setSubdistricts([]);
       return;
     }
-    apiGet<{ id: string; code: string; nameTh: string; nameEn: string | null; zipCode: string | null }[]>(`/subdistricts?districtId=${encodeURIComponent(selectedDistrictId)}`)
-      .then(setSubdistricts)
+    setSubdistricts([]);
+    apiGet<{ id: string; code: string; nameTh: string; nameEn: string | null; zipCode: string | null }[] | { data?: { id: string; code: string; nameTh: string; nameEn: string | null; zipCode: string | null }[] }>(`/subdistricts?districtId=${encodeURIComponent(selectedDistrictId)}`)
+      .then((res) => {
+        const list = Array.isArray(res) ? res : (res?.data ?? []);
+        setSubdistricts(Array.isArray(list) ? list : []);
+      })
       .catch(() => setSubdistricts([]));
   }, [selectedDistrictId]);
 
   const fetchByZip = (zip: string) => {
     if (zip.length !== 5 || !/^\d{5}$/.test(zip)) return;
     setZipLoading(true);
-    apiGet<{ provinces: ZipFilter['provinces']; districts: ZipFilter['districts']; subdistricts: ZipFilter['subdistricts'] }>(`/by-zip?zipCode=${encodeURIComponent(zip)}`)
-      .then((data) => {
-        setZipFilter(data);
+    type ByZipRes = { provinces: ZipFilter['provinces']; districts: ZipFilter['districts']; subdistricts: ZipFilter['subdistricts'] };
+    apiGet<ByZipRes | { data?: ByZipRes }>(`/by-zip?zipCode=${encodeURIComponent(zip)}`)
+      .then((res) => {
+        const data = (res && typeof res === 'object' && 'data' in res ? (res as { data?: ByZipRes }).data : res) as ByZipRes | undefined;
+        if (!data || !Array.isArray(data.provinces)) return;
+        const filter = { provinces: data.provinces, districts: data.districts ?? [], subdistricts: data.subdistricts ?? [] };
+        setZipFilter(filter);
         setZipFilterZip(zip);
         const emptyProvince = !address.addr_provinceCode;
-        if (emptyProvince && data.provinces.length === 1 && data.districts.length === 1 && data.subdistricts.length === 1) {
-          const p = data.provinces[0];
-          const d = data.districts[0];
-          const s = data.subdistricts[0];
+        if (emptyProvince && filter.provinces.length === 1 && filter.districts.length === 1 && filter.subdistricts.length === 1) {
+          const p = filter.provinces[0];
+          const d = filter.districts[0];
+          const s = filter.subdistricts[0];
           setAddress((a) => ({
             ...a,
             addr_provinceCode: p.code,
@@ -370,7 +380,8 @@ export default function MemberDetail() {
                   const provinceOptions = useZipFilter ? zipFilter.provinces : provinces;
                   const districtOptions = useZipFilter ? zipFilter.districts : districts;
                   // When a district is selected, show only subdistricts for that district; otherwise (zip-only) show all subdistricts for the zip
-                  const subdistrictOptions = selectedDistrictId ? subdistricts : (useZipFilter ? zipFilter.subdistricts : subdistricts);
+                  const subdistrictOptionsRaw = selectedDistrictId ? subdistricts : (useZipFilter ? zipFilter.subdistricts : subdistricts);
+                  const subdistrictOptions = Array.isArray(subdistrictOptionsRaw) ? subdistrictOptionsRaw : [];
                   return (
                     <>
                       <div className="form-group"><label>Province (จังหวัด)</label>
