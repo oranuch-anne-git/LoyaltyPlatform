@@ -30,8 +30,8 @@ export class MemberService {
   }
 
   /**
-   * Map admin backend member (flat) to customer API get-profile response structure.
-   * Response: { status: { success, message }, data: { id, memberId, ..., user: { profile, address } } }
+   * Map admin backend member (flat) to get-info payload (single envelope added by ResponseTransformInterceptor).
+   * Returns the data object only: { id, memberId, ..., user: { profile, address } }.
    */
   private mapToGetProfileResponse(member: Record<string, unknown>) {
     const addressKeys = [
@@ -55,7 +55,7 @@ export class MemberService {
       email: member.email ?? null,
       address,
     };
-    const data = {
+    return {
       id: member.id,
       memberId: member.memberId,
       crmId: member.crmId ?? null,
@@ -65,16 +65,12 @@ export class MemberService {
       pointBalance: member.pointBalance ?? 0,
       user,
     };
-    return {
-      status: { success: true, message: 'success' },
-      data,
-    };
   }
 
   /**
    * Member_GetInfo: member profile by memberId.
-   * Proxies to Admin Backend GET /api/members/get-info/by-member-id/:memberId
-   * and returns { status: { success, message }, data: { id, memberId, ..., user: { profile, address } } }.
+   * Proxies to Admin Backend GET /api/members/get-info/by-member-id/:memberId.
+   * Returns payload only; ResponseTransformInterceptor adds single { status, data } envelope.
    */
   async getInfo(memberId: string, authHeader?: string) {
     try {
@@ -88,6 +84,7 @@ export class MemberService {
       if (member && typeof member === 'object' && 'data' in member && member.data != null && typeof member.data === 'object') {
         member = member.data as Record<string, unknown>;
       }
+      // Return payload only so interceptor produces one status envelope
       return this.mapToGetProfileResponse((member ?? {}) as Record<string, unknown>);
     } catch (err) {
       this.handleError(err);
