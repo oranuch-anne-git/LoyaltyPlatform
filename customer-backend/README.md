@@ -7,7 +7,7 @@ Separate API project for **customer-facing** endpoints. Proxies to the Admin Bac
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | POST | /api/auth/token | — | Get JWT with API key. Send `X-API-Key` header or body `{ "apiKey": "..." }`. Proxies to Admin Backend. Response: `{ status: { success, message }, data: { access_token } }`. |
-| GET | /api/members/levels | JWT | **Company_GetMemberLevel** – list member levels (Yellow, Silver, Black) with benefit fields. |
+| GET | /api/members/levels | JWT | **Company_GetMemberLevel** – list member levels (Yellow, Silver, Black) with benefit fields. Response items do not include `id`, `createdAt`, `updatedAt`. |
 | GET | /api/members/get-info/:memberId | JWT | **Member_GetInfo** – full member (member, profile, address). |
 | POST | /api/members | JWT | Create member profile (and/or address) (firstName, lastName, nationalType, citizenId, passport, gender, birthdate, mobile, email, addr_*, etc.). |
 | PATCH | /api/members/:memberId | JWT | Update member profile (and/or address) by memberId. Body: any of firstName, lastName, nationalType, citizenId, passport, gender, birthdate, mobile, email, addr_*, etc. |
@@ -20,11 +20,11 @@ Thailand address master: list province, district, subdistrict by **zip code** or
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | /api/location/provinces?zipCode=10400 | JWT | List provinces that have subdistricts with this zip code. Returns `[{ id, code, nameTh, nameEn }]`. |
-| GET | /api/location/districts?zipCode=10400 | JWT | List districts that have subdistricts with this zip code. Returns `[{ id, code, nameTh, nameEn }]`. |
-| GET | /api/location/subdistricts?districtCode=1014 | JWT | List subdistricts for the given district (e.g. 1014 = Phaya Thai). Returns `[{ id, code, nameTh, nameEn, zipCode }]`. |
+| GET | /api/location/provinces?zipCode=10400 | JWT | List provinces that have subdistricts with this zip code. Returns `[{ code, nameTh, nameEn }]` (no `id`, `createdAt`, `updatedAt`). |
+| GET | /api/location/districts?zipCode=10400 | JWT | List districts that have subdistricts with this zip code. Returns `[{ code, nameTh, nameEn }]` (no `id`, `createdAt`, `updatedAt`). |
+| GET | /api/location/subdistricts?districtCode=1014 | JWT | List subdistricts for the given district (e.g. 1014 = Phaya Thai). Returns `[{ code, nameTh, nameEn, zipCode }]` (no `id`, `createdAt`, `updatedAt`). |
 | GET | /api/location/subdistricts?districtCode=1014&amp;provinceCode=10 | JWT | Same; add `provinceCode` only if the same district code exists in more than one province (optional). |
-| GET | /api/location/subdistricts?zipCode=10400 | JWT | List subdistricts with this zip code. Returns `[{ id, code, nameTh, nameEn, zipCode }]`. Use when filtering by postal code. |
+| GET | /api/location/subdistricts?zipCode=10400 | JWT | List subdistricts with this zip code. Returns `[{ code, nameTh, nameEn, zipCode }]` (no `id`, `createdAt`, `updatedAt`). Use when filtering by postal code. |
 
 **Subdistricts:** Use only `districtCode` (e.g. 1014) to get all subdistricts for that district. `provinceCode` is optional. If both `districtCode` and `zipCode` are present, `districtCode` is used.
 

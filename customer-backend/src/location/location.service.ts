@@ -37,6 +37,14 @@ export class LocationService {
     return body as T;
   }
 
+  /** Strip id, createdAt, updatedAt from location items (customer API does not expose these). */
+  private stripIdAndTimestamps<T extends Record<string, unknown>>(items: T[]): Omit<T, 'id' | 'createdAt' | 'updatedAt'>[] {
+    return items.map((item) => {
+      const { id: _id, createdAt: _c, updatedAt: _u, ...rest } = item;
+      return rest as Omit<T, 'id' | 'createdAt' | 'updatedAt'>;
+    });
+  }
+
   private async getByZipCode(zipCode: string, authHeader?: string): Promise<LocationByZipResponse> {
     const zip = String(zipCode || '').trim();
     if (!zip) return { provinces: [], districts: [], subdistricts: [] };
@@ -52,26 +60,29 @@ export class LocationService {
     }
   }
 
-  /** List provinces that have subdistricts with the given zip code. */
-  async getProvincesByZipCode(zipCode: string, authHeader?: string): Promise<LocationItem[]> {
+  /** List provinces that have subdistricts with the given zip code. Does not return id, createdAt, updatedAt. */
+  async getProvincesByZipCode(zipCode: string, authHeader?: string): Promise<Omit<LocationItem, 'id'>[]> {
     const data = await this.getByZipCode(zipCode, authHeader);
-    return data.provinces ?? [];
+    const list = (data.provinces ?? []) as Record<string, unknown>[];
+    return this.stripIdAndTimestamps(list) as Omit<LocationItem, 'id'>[];
   }
 
-  /** List districts that have subdistricts with the given zip code. */
-  async getDistrictsByZipCode(zipCode: string, authHeader?: string): Promise<LocationItem[]> {
+  /** List districts that have subdistricts with the given zip code. Does not return id, createdAt, updatedAt. */
+  async getDistrictsByZipCode(zipCode: string, authHeader?: string): Promise<Omit<LocationItem, 'id'>[]> {
     const data = await this.getByZipCode(zipCode, authHeader);
-    return data.districts ?? [];
+    const list = (data.districts ?? []) as Record<string, unknown>[];
+    return this.stripIdAndTimestamps(list) as Omit<LocationItem, 'id'>[];
   }
 
-  /** List subdistricts with the given zip code. */
-  async getSubdistrictsByZipCode(zipCode: string, authHeader?: string): Promise<SubdistrictItem[]> {
+  /** List subdistricts with the given zip code. Does not return id, createdAt, updatedAt. */
+  async getSubdistrictsByZipCode(zipCode: string, authHeader?: string): Promise<Omit<SubdistrictItem, 'id'>[]> {
     const data = await this.getByZipCode(zipCode, authHeader);
-    return data.subdistricts ?? [];
+    const list = (data.subdistricts ?? []) as Record<string, unknown>[];
+    return this.stripIdAndTimestamps(list) as Omit<SubdistrictItem, 'id'>[];
   }
 
-  /** List subdistricts for the given district (by district code; optional provinceCode to scope). */
-  async getSubdistrictsByDistrictCode(districtCode: string, provinceCode: string | undefined, authHeader?: string): Promise<SubdistrictItem[]> {
+  /** List subdistricts for the given district (by district code; optional provinceCode to scope). Does not return id, createdAt, updatedAt. */
+  async getSubdistrictsByDistrictCode(districtCode: string, provinceCode: string | undefined, authHeader?: string): Promise<Omit<SubdistrictItem, 'id'>[]> {
     if (!districtCode?.trim()) return [];
     try {
       const params: { districtCode: string; provinceCode?: string } = { districtCode: districtCode.trim() };
@@ -81,7 +92,8 @@ export class LocationService {
         headers: { Authorization: this.getAuthHeader(authHeader) },
       });
       const list = this.unwrapPlatformData<SubdistrictItem[]>(data);
-      return Array.isArray(list) ? list : [];
+      const arr = Array.isArray(list) ? (list as Record<string, unknown>[]) : [];
+      return this.stripIdAndTimestamps(arr) as Omit<SubdistrictItem, 'id'>[];
     } catch (err) {
       this.handleError(err);
     }

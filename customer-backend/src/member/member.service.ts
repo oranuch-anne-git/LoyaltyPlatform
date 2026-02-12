@@ -91,16 +91,27 @@ export class MemberService {
     }
   }
 
+  /** Strip id, createdAt, updatedAt from list items (customer API does not expose these). */
+  private stripIdAndTimestamps<T extends Record<string, unknown>>(items: T[]): Omit<T, 'id' | 'createdAt' | 'updatedAt'>[] {
+    return items.map((item) => {
+      const { id: _id, createdAt: _c, updatedAt: _u, ...rest } = item;
+      return rest as Omit<T, 'id' | 'createdAt' | 'updatedAt'>;
+    });
+  }
+
   /**
    * Company_GetMemberLevel: list member levels (Yellow, Silver, Black) with benefit fields.
-   * Proxies to Admin Backend GET /api/members/levels
+   * Proxies to Admin Backend GET /api/members/levels. Does not return id, createdAt, updatedAt.
    */
   async getLevels(authHeader?: string) {
     try {
       const { data } = await this.platformClient.get('/api/members/levels', {
         headers: { Authorization: this.getAuthHeader(authHeader) },
       });
-      return data;
+      const raw = (data != null && typeof data === 'object' && 'data' in data && Array.isArray((data as { data: unknown }).data))
+        ? (data as { data: Record<string, unknown>[] }).data
+        : Array.isArray(data) ? data : [];
+      return this.stripIdAndTimestamps(raw as Record<string, unknown>[]);
     } catch (err) {
       this.handleError(err);
     }
