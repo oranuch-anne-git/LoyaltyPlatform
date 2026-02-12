@@ -82,7 +82,12 @@ export class MemberService {
         headers: { Authorization: this.getAuthHeader(authHeader) },
       });
       const body = data as Record<string, unknown> | undefined;
-      const member = body && typeof body === 'object' && 'data' in body && body.data != null ? (body.data as Record<string, unknown>) : body;
+      let member: Record<string, unknown> | undefined =
+        body && typeof body === 'object' && 'data' in body && body.data != null ? (body.data as Record<string, unknown>) : (body as Record<string, unknown>);
+      // Unwrap one more level if platform returned { status, data: { status, data: member } }
+      if (member && typeof member === 'object' && 'data' in member && member.data != null && typeof member.data === 'object') {
+        member = member.data as Record<string, unknown>;
+      }
       return this.mapToGetProfileResponse((member ?? {}) as Record<string, unknown>);
     } catch (err) {
       this.handleError(err);
