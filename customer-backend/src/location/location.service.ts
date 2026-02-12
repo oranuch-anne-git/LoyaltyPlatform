@@ -63,21 +63,21 @@ export class LocationService {
   /** List provinces that have subdistricts with the given zip code. Does not return id, createdAt, updatedAt. */
   async getProvincesByZipCode(zipCode: string, authHeader?: string): Promise<Omit<LocationItem, 'id'>[]> {
     const data = await this.getByZipCode(zipCode, authHeader);
-    const list = (data.provinces ?? []) as Record<string, unknown>[];
+    const list = (data.provinces ?? []) as unknown as Record<string, unknown>[];
     return this.stripIdAndTimestamps(list) as Omit<LocationItem, 'id'>[];
   }
 
   /** List districts that have subdistricts with the given zip code. Does not return id, createdAt, updatedAt. */
   async getDistrictsByZipCode(zipCode: string, authHeader?: string): Promise<Omit<LocationItem, 'id'>[]> {
     const data = await this.getByZipCode(zipCode, authHeader);
-    const list = (data.districts ?? []) as Record<string, unknown>[];
+    const list = (data.districts ?? []) as unknown as Record<string, unknown>[];
     return this.stripIdAndTimestamps(list) as Omit<LocationItem, 'id'>[];
   }
 
   /** List subdistricts with the given zip code. Does not return id, createdAt, updatedAt. */
   async getSubdistrictsByZipCode(zipCode: string, authHeader?: string): Promise<Omit<SubdistrictItem, 'id'>[]> {
     const data = await this.getByZipCode(zipCode, authHeader);
-    const list = (data.subdistricts ?? []) as Record<string, unknown>[];
+    const list = (data.subdistricts ?? []) as unknown as Record<string, unknown>[];
     return this.stripIdAndTimestamps(list) as Omit<SubdistrictItem, 'id'>[];
   }
 
@@ -92,7 +92,7 @@ export class LocationService {
         headers: { Authorization: this.getAuthHeader(authHeader) },
       });
       const list = this.unwrapPlatformData<SubdistrictItem[]>(data);
-      const arr = Array.isArray(list) ? (list as Record<string, unknown>[]) : [];
+      const arr = Array.isArray(list) ? (list as unknown as Record<string, unknown>[]) : [];
       return this.stripIdAndTimestamps(arr) as Omit<SubdistrictItem, 'id'>[];
     } catch (err) {
       this.handleError(err);
