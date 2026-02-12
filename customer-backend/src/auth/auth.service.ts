@@ -39,7 +39,7 @@ export class AuthService {
         `${this.platformUrl}/api/auth/token`,
         { apiKey },
         {
-          timeout: 10000,
+          timeout: 70000, // 70s so Admin Backend on Render free tier can cold-start (~50–60s)
           headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
         },
       );

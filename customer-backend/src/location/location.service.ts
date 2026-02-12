@@ -12,7 +12,7 @@ export class LocationService {
     this.platformUrl = this.config.get<string>('PLATFORM_API_URL', 'http://localhost:3000');
     this.platformClient = axios.create({
       baseURL: this.platformUrl,
-      timeout: 15000,
+      timeout: 70000, // allow Admin Backend on Render free tier to cold-start (~50–60s)
       headers: { 'Content-Type': 'application/json' },
     });
   }
