@@ -107,6 +107,90 @@ API: `http://localhost:3001`. Use the same JWT from platform login.
 - `LINE_CHANNEL_SECRET`, `LINE_CHANNEL_ACCESS_TOKEN` – For LINE OA (optional)
 - `CORS_ORIGIN` – Admin origin (e.g. `http://localhost:5173`)
 
+### Render (production): services and environment variables
+
+When you deploy on [Render](https://render.com), you typically have four services. Set these environment variables so they work together.
+
+| Service | Type | Region | Purpose |
+|--------|------|--------|---------|
+| **loyalty-database** | PostgreSQL | Oregon | Database for Admin Backend. |
+| **loyalty-admin-backend** | Web Service (Node) | Oregon | Admin API. |
+| **loyalty-customer-backend** | Web Service (Node) | Oregon | Customer-facing API (proxies to Admin Backend). |
+| **loyalty-admin-portal** | Static Site | Global | Admin UI (React). |
+
+**loyalty-admin-backend → Environment**
+
+| Variable | Value |
+|----------|--------|
+| `DATABASE_URL` | **Internal Database URL** from **loyalty-database** (Connections → Internal Database URL). Must be the internal URL (not External). |
+| `JWT_SECRET` | Strong secret string. **Must match** the value on loyalty-customer-backend. |
+| `API_KEY` | Secret used for `POST /api/auth/token` (e.g. from Customer Backend or tests). |
+| `CORS_ORIGIN` | Admin Portal URL, e.g. `https://loyalty-admin-portal.onrender.com` (no trailing slash). |
+
+**loyalty-customer-backend → Environment**
+
+| Variable | Value |
+|----------|--------|
+| `PLATFORM_API_URL` | Admin Backend URL, e.g. `https://loyalty-admin-backend.onrender.com` (no trailing slash). |
+| `JWT_SECRET` | **Same** as on loyalty-admin-backend. |
+| `CORS_ORIGIN` | Optional. Set if a web/mobile app on another domain will call this API. |
+| `PORT` | Leave unset (Render sets it). |
+
+**loyalty-admin-portal → Environment**
+
+| Variable | Value |
+|----------|--------|
+| `VITE_API_URL` | Admin Backend URL, e.g. `https://loyalty-admin-backend.onrender.com` (no trailing slash). Baked in at build time. |
+
+**loyalty-database** – No env vars to set on the database. Copy its **Internal Database URL** into the Admin Backend’s `DATABASE_URL`.
+
+Deploy order: **loyalty-database** → **loyalty-admin-backend** → **loyalty-customer-backend** → **loyalty-admin-portal**. See [customer-backend/README.md](customer-backend/README.md) and [admin-portal/README.md](admin-portal/README.md) for step-by-step Render setup.
+
+#### Loading member level, province, district, subdistrict data on Render
+
+**What’s already on Render**
+
+- Every Admin Backend **build** runs the seed (`prisma:seed`), which creates:
+  - **Member levels:** Yellow, Silver, Black (with sample privilege text).
+  - **Provinces / districts / subdistricts:** A small sample (e.g. Bangkok, Chiang Mai, Phuket with a few districts and subdistricts).
+  - Plus: roles, admin user, API key user, branches, demo members, rewards, campaigns.
+
+So you don’t need to “copy” member levels or the sample locations from local — they’re already created on Render by the seed.
+
+**Full Thailand geography (all provinces, districts, subdistricts with zip codes)**
+
+1. **Ensure the data file is in the repo**  
+   The seed-thailand script uses `admin-backend/prisma/data/thailand-geography.json`. If that file is committed, Render will have it when it builds.
+
+2. **Run Thailand seed on Render (one-time)**  
+   - In Render, open the **loyalty-admin-backend** service.
+   - Open the **Shell** tab (or use a one-off job if you use it).
+   - In the shell, run (same idea as local, but using `node` so the script runs):
+     ```bash
+     cd /opt/render/project/src/admin-backend && node node_modules/ts-node/dist/bin.js prisma/seed-thailand.ts
+     ```
+   - If your repo path on Render is different, adjust the `cd` path. The script reads `DATABASE_URL` from the environment, so it will write to your Render Postgres.
+   - **Note:** This **replaces** all existing province, district, and subdistrict rows with the full Thailand set (it deletes then re-inserts). Member levels and other seed data are unchanged.
+
+3. **Optional: run seed-thailand on every deploy**  
+   If you want full Thailand data on every deploy, add the same command to the Admin Backend **build** in Render (after `npm run prisma:seed`), e.g.  
+   `node node_modules/ts-node/dist/bin.js prisma/seed-thailand.ts`  
+   Build time will increase. The repo must contain `admin-backend/prisma/data/thailand-geography.json` (or the script will fetch from the public URL, which may be slower).
+
+**Re-running the main seed on Render**
+
+- To recreate or fix roles, admin user, API key user, member levels, sample locations, demo members, etc., run the regular seed in the Render Shell:
+  ```bash
+  cd /opt/render/project/src/admin-backend && node node_modules/ts-node/dist/bin.js prisma/seed.ts
+  ```
+- The seed uses **upserts**, so it’s safe to run again; it won’t duplicate member levels or the sample province/district/subdistrict rows.
+
+**Copying custom data from local to Render**
+
+- If you changed data only in your **local** SQLite (e.g. edited member level names or added custom provinces), there is no built-in “sync local → Render” tool. Options:
+  - **Re-run seed / seed-thailand on Render** (above) to get the standard data.
+  - **Export from local and import to Render:** export the relevant tables (e.g. with a small script or SQLite dump), convert to PostgreSQL-compatible SQL or CSV, then import into the Render Postgres (e.g. via `psql` or a one-off script that uses Prisma). This is custom work per table.
+
 ## API Reference
 
 Base URL: `http://localhost:3000`. All `/api/*` and `/webhook/*` paths below are relative to base.

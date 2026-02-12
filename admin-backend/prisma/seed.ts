@@ -125,6 +125,23 @@ async function main() {
     });
   }
 
+  // ----- Member levels (Yellow, Silver, Black) - required for members and portal -----
+  await prisma.memberLevel.upsert({
+    where: { code: 'YELLOW' },
+    create: { code: 'YELLOW', name: 'Yellow Card', sortOrder: 1, privilegeTh: 'ลูกค้าใหม่\n25 บาท = 1 คะแนน\nส่วนลด 3%', privilegeEn: 'New member\n25 THB = 1 point\n3% discount' },
+    update: {},
+  });
+  await prisma.memberLevel.upsert({
+    where: { code: 'SILVER' },
+    create: { code: 'SILVER', name: 'Silver Card', sortOrder: 2, privilegeTh: 'ยอดใช้จ่ายสะสม 50,000 บาท\nส่วนลด 5%', privilegeEn: 'Accumulated spend 50,000 THB\n5% discount' },
+    update: {},
+  });
+  await prisma.memberLevel.upsert({
+    where: { code: 'BLACK' },
+    create: { code: 'BLACK', name: 'Black Card', sortOrder: 3, privilegeTh: 'ยอดใช้จ่ายสะสม 100,000 บาท\nส่วนลด 7%\nบริการ Contact Center ทันที', privilegeEn: 'Accumulated spend 100,000 THB\n7% discount\nPriority contact center' },
+    update: {},
+  });
+
   // ----- Members (demo) -----
   const levels = await prisma.memberLevel.findMany({ orderBy: { sortOrder: 'asc' } });
   const levelYellow = levels.find((l) => l.code === 'YELLOW')?.code;
