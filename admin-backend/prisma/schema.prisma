@@ -61,7 +61,7 @@ model Member {
   nationalType  String   // THAI | OTHER (required)
   citizenId     String?  // Thai Citizen ID (when nationalType = THAI)
   passport      String?  // Passport number (when nationalType = OTHER)
-  gender        String   // M | F (required)
+  gender        String   // 1=Male, 2=Female (required)
   birthdate     DateTime? // optional
   mobile        String   // (required)
   email         String?

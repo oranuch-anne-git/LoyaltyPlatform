@@ -33,7 +33,7 @@ export class MemberService {
         nationalType: dto.nationalType ?? 'OTHER',
         citizenId: dto.citizenId,
         passport: dto.passport,
-        gender: dto.gender ?? 'M',
+        gender: dto.gender ?? '1',
         birthdate: dto.birthdate ? new Date(dto.birthdate) : null,
         mobile: dto.mobile ?? '',
         email: dto.email,

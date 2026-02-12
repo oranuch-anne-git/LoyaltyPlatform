@@ -224,7 +224,7 @@ export default function MemberDetail() {
         nationalType: member.nationalType ?? '',
         citizenId: member.citizenId ?? '',
         passport: member.passport ?? '',
-        gender: member.gender ?? '',
+        gender: (member.gender === 'M' || member.gender === '1') ? '1' : (member.gender === 'F' || member.gender === '2') ? '2' : '',
         birthdate: toDateInputValue(member.birthdate),
         mobile: member.mobile ?? '',
         email: member.email ?? '',
@@ -347,7 +347,7 @@ export default function MemberDetail() {
               <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>National type</div><div>{member.nationalType === 'THAI' ? 'Thai' : member.nationalType === 'OTHER' ? 'Other' : member.nationalType || '—'}</div></div>
               <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Citizen ID</div><div>{member.citizenId || '—'}</div></div>
               <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Passport</div><div>{member.passport || '—'}</div></div>
-              <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Gender</div><div>{member.gender === 'M' ? 'Male' : member.gender === 'F' ? 'Female' : member.gender || '—'}</div></div>
+              <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Gender</div><div>{member.gender === '1' || member.gender === 'M' ? 'Male' : member.gender === '2' || member.gender === 'F' ? 'Female' : member.gender || '—'}</div></div>
               <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Birthdate</div><div>{member.birthdate ? new Date(member.birthdate).toLocaleDateString() : '—'}</div></div>
               <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Mobile</div><div>{member.mobile || '—'}</div></div>
               <div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Email</div><div>{member.email || '—'}</div></div>
@@ -370,7 +370,7 @@ export default function MemberDetail() {
                 <div className="form-group"><label>National type</label><select value={profile.nationalType} onChange={(e) => setProfile((p) => ({ ...p, nationalType: e.target.value }))}><option value="">—</option><option value="THAI">Thai</option><option value="OTHER">Other</option></select></div>
                 <div className="form-group"><label>Citizen ID</label><input type="text" value={profile.citizenId} onChange={(e) => setProfile((p) => ({ ...p, citizenId: e.target.value }))} placeholder="Thai ID" /></div>
                 <div className="form-group"><label>Passport</label><input type="text" value={profile.passport} onChange={(e) => setProfile((p) => ({ ...p, passport: e.target.value }))} placeholder="Passport no." /></div>
-                <div className="form-group"><label>Gender</label><select value={profile.gender} onChange={(e) => setProfile((p) => ({ ...p, gender: e.target.value }))}><option value="">—</option><option value="M">Male</option><option value="F">Female</option><option value="OTHER">Other</option></select></div>
+                <div className="form-group"><label>Gender</label><select value={profile.gender} onChange={(e) => setProfile((p) => ({ ...p, gender: e.target.value }))}><option value="">—</option><option value="1">Male</option><option value="2">Female</option></select></div>
                 <div className="form-group"><label>Birthdate</label><input type="date" value={profile.birthdate} onChange={(e) => setProfile((p) => ({ ...p, birthdate: e.target.value }))} /></div>
                 <div className="form-group"><label>Mobile</label><input type="tel" value={profile.mobile} onChange={(e) => setProfile((p) => ({ ...p, mobile: e.target.value }))} placeholder="Mobile" /></div>
                 <div className="form-group"><label>Email</label><input type="email" value={profile.email} onChange={(e) => setProfile((p) => ({ ...p, email: e.target.value }))} placeholder="Email" /></div>

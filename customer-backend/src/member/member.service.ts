@@ -81,7 +81,9 @@ export class MemberService {
       const { data } = await this.platformClient.get(`/api/members/get-info/by-member-id/${encodeURIComponent(memberId)}`, {
         headers: { Authorization: this.getAuthHeader(authHeader) },
       });
-      return this.mapToGetProfileResponse(data as Record<string, unknown>);
+      const body = data as Record<string, unknown> | undefined;
+      const member = body && typeof body === 'object' && 'data' in body && body.data != null ? (body.data as Record<string, unknown>) : body;
+      return this.mapToGetProfileResponse((member ?? {}) as Record<string, unknown>);
     } catch (err) {
       this.handleError(err);
     }

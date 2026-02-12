@@ -16,7 +16,7 @@ CREATE TABLE "Member" (
     "nationalType"          TEXT    NOT NULL,   -- THAI | OTHER
     "citizenId"             TEXT,
     "passport"              TEXT,
-    "gender"                TEXT    NOT NULL,   -- M | F
+    "gender"                TEXT    NOT NULL,   -- 1=Male, 2=Female
     "birthdate"             DATETIME,
     "mobile"                TEXT    NOT NULL,
     "email"                 TEXT,

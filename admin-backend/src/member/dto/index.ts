@@ -31,6 +31,7 @@ export class CreateMemberDto {
 
   @IsOptional()
   @IsString()
+  @IsIn(['1', '2']) // 1=Male, 2=Female
   gender?: string;
 
   @IsOptional()
@@ -138,6 +139,7 @@ export class UpdateMemberDto {
 
   @IsOptional()
   @IsString()
+  @IsIn(['1', '2']) // 1=Male, 2=Female
   gender?: string;
 
   @IsOptional()
