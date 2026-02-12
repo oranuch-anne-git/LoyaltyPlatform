@@ -87,6 +87,7 @@ export default function MemberDetail() {
   const [districts, setDistricts] = useState<{ id: string; code: string; nameTh: string; nameEn: string | null }[]>([]);
   const [subdistricts, setSubdistricts] = useState<{ id: string; code: string; nameTh: string; nameEn: string | null; zipCode: string | null }[]>([]);
   const [selectedDistrictId, setSelectedDistrictId] = useState('');
+  const [selectedDistrictCode, setSelectedDistrictCode] = useState('');
   type ZipFilter = { provinces: typeof provinces; districts: typeof districts; subdistricts: typeof subdistricts };
   const [zipFilter, setZipFilter] = useState<ZipFilter | null>(null);
   const [zipFilterZip, setZipFilterZip] = useState<string>(''); // zip code that zipFilter was fetched for
@@ -111,6 +112,7 @@ export default function MemberDetail() {
     if (!address.addr_provinceCode) {
       setDistricts([]);
       setSelectedDistrictId('');
+      setSelectedDistrictCode('');
       setSubdistricts([]);
       return;
     }
@@ -118,8 +120,13 @@ export default function MemberDetail() {
       setDistricts(zipFilter.districts);
       const districtCode = address.addr_districtCode != null ? String(address.addr_districtCode).trim() : '';
       const match = zipFilter.districts.find((d) => String(d.code).trim() === districtCode);
-      if (match) setSelectedDistrictId(match.id);
-      else setSelectedDistrictId('');
+      if (match) {
+        setSelectedDistrictId(match.id);
+        setSelectedDistrictCode(String(match.code).trim());
+      } else {
+        setSelectedDistrictId('');
+        setSelectedDistrictCode('');
+      }
       return;
     }
     apiGet<{ id: string; code: string; nameTh: string; nameEn: string | null }[]>(`/districts?provinceCode=${encodeURIComponent(address.addr_provinceCode)}`)
@@ -127,25 +134,30 @@ export default function MemberDetail() {
         setDistricts(Array.isArray(list) ? list : []);
         const districtCode = address.addr_districtCode != null ? String(address.addr_districtCode).trim() : '';
         const match = (Array.isArray(list) ? list : []).find((d) => String(d.code).trim() === districtCode);
-        if (match) setSelectedDistrictId(match.id);
-        else setSelectedDistrictId('');
+        if (match) {
+          setSelectedDistrictId(match.id);
+          setSelectedDistrictCode(String(match.code).trim());
+        } else {
+          setSelectedDistrictId('');
+          setSelectedDistrictCode('');
+        }
       })
       .catch(() => setDistricts([]));
   }, [address.addr_provinceCode, address.addr_districtCode, zipFilter]);
 
   useEffect(() => {
-    if (!selectedDistrictId) {
+    if (!selectedDistrictCode) {
       setSubdistricts([]);
       return;
     }
     setSubdistricts([]);
-    apiGet<{ id: string; code: string; nameTh: string; nameEn: string | null; zipCode: string | null }[] | { data?: { id: string; code: string; nameTh: string; nameEn: string | null; zipCode: string | null }[] }>(`/subdistricts?districtId=${encodeURIComponent(selectedDistrictId)}`)
+    apiGet<{ id: string; code: string; nameTh: string; nameEn: string | null; zipCode: string | null }[] | { data?: { id: string; code: string; nameTh: string; nameEn: string | null; zipCode: string | null }[] }>(`/subdistricts?districtCode=${encodeURIComponent(selectedDistrictCode)}`)
       .then((res) => {
         const list = Array.isArray(res) ? res : (res?.data ?? []);
         setSubdistricts(Array.isArray(list) ? list : []);
       })
       .catch(() => setSubdistricts([]));
-  }, [selectedDistrictId]);
+  }, [selectedDistrictCode]);
 
   const fetchByZip = (zip: string) => {
     if (zip.length !== 5 || !/^\d{5}$/.test(zip)) return;
@@ -174,6 +186,7 @@ export default function MemberDetail() {
             addr_zipCode: s.zipCode || zip,
           }));
           setSelectedDistrictId(d.id);
+          setSelectedDistrictCode(String(d.code).trim());
         }
       })
       .catch(() => {
@@ -229,6 +242,7 @@ export default function MemberDetail() {
         addr_country: member.addr_country ?? '',
       });
       setSelectedDistrictId('');
+      setSelectedDistrictCode('');
     }
   }, [member, editing]);
 
@@ -379,8 +393,8 @@ export default function MemberDetail() {
                   const useZipFilter = zipFilter && (address.addr_zipCode || '').trim() === zipFilterZip;
                   const provinceOptions = useZipFilter ? zipFilter.provinces : provinces;
                   const districtOptions = useZipFilter ? zipFilter.districts : districts;
-                  // When a district is selected, show only subdistricts for that district; otherwise (zip-only) show all subdistricts for the zip
-                  const subdistrictOptionsRaw = selectedDistrictId ? subdistricts : (useZipFilter ? zipFilter.subdistricts : subdistricts);
+                  // When a district is selected, show only subdistricts for that district (fetched by districtCode); otherwise show all for zip or empty
+                  const subdistrictOptionsRaw = selectedDistrictCode ? subdistricts : (useZipFilter ? zipFilter.subdistricts : subdistricts);
                   const subdistrictOptions = Array.isArray(subdistrictOptionsRaw) ? subdistrictOptionsRaw : [];
                   return (
                     <>
@@ -390,6 +404,7 @@ export default function MemberDetail() {
                           const p = provinceOptions.find((x) => x.code === code);
                           setAddress((a) => ({ ...a, addr_provinceCode: code, addr_province: p?.nameTh ?? '', addr_districtCode: '', addr_district: '', addr_subdistrictCode: '', addr_subdistrict: '' }));
                           setSelectedDistrictId('');
+                          setSelectedDistrictCode('');
                         }}>
                           <option value="">— เลือกจังหวัด —</option>
                           {provinceOptions.map((p) => (<option key={p.id} value={p.code}>{p.nameTh}</option>))}
@@ -399,7 +414,9 @@ export default function MemberDetail() {
                         <select value={selectedDistrictId} onChange={(e) => {
                           const id = e.target.value;
                           const d = districtOptions.find((x) => x.id === id);
+                          const districtCode = d ? String(d.code).trim() : '';
                           setSelectedDistrictId(id);
+                          setSelectedDistrictCode(districtCode);
                           setAddress((a) => ({ ...a, addr_districtCode: d?.code ?? '', addr_district: d?.nameTh ?? a.addr_district, addr_subdistrictCode: '', addr_subdistrict: '' }));
                         }}>
                           <option value="">— เลือกอำเภอ/เขต —</option>

@@ -60,7 +60,6 @@ export class MemberService {
       memberId: member.memberId,
       crmId: member.crmId ?? null,
       lineUserId: member.lineUserId ?? null,
-      levelCode: member.levelCode ?? null,
       active: member.active ?? true,
       channel: member.channel ?? null,
       pointBalance: member.pointBalance ?? 0,
@@ -103,13 +102,20 @@ export class MemberService {
     }
   }
 
+  /** Fields allowed for Create and Update (same shape). levelCode is not accepted. */
+  private stripLevelCodeAndForward(body: Record<string, unknown>): Record<string, unknown> {
+    const { levelCode: _removed, ...rest } = body;
+    return rest;
+  }
+
   /**
    * Create member. Proxies to Admin Backend POST /api/members.
-   * Body: profile + optional address (name, surname, nationalType, sex, birthdate, mobile, email, addr_*, etc.)
+   * Body: same fields as Update (firstName, lastName, nationalType, citizenId, passport, gender, birthdate, mobile, email, addr_*, etc.). levelCode is not accepted.
    */
   async create(body: Record<string, unknown>, authHeader?: string) {
     try {
-      const { data } = await this.platformClient.post('/api/members', body, {
+      const payload = this.stripLevelCodeAndForward(body);
+      const { data } = await this.platformClient.post('/api/members', payload, {
         headers: { Authorization: this.getAuthHeader(authHeader) },
       });
       return data;
@@ -120,11 +126,12 @@ export class MemberService {
 
   /**
    * Update member profile and/or address by memberId. Proxies to Admin Backend PATCH /api/members/by-member-id/:memberId.
-   * Body: any of name, surname, nationalType, citizenId, passport, sex, birthdate, mobile, email, addr_*, etc.
+   * Body: any of firstName, lastName, nationalType, citizenId, passport, gender, birthdate, mobile, email, addr_*, etc. levelCode is not accepted.
    */
   async update(memberId: string, body: Record<string, unknown>, authHeader?: string) {
     try {
-      const { data } = await this.platformClient.patch(`/api/members/by-member-id/${encodeURIComponent(memberId)}`, body, {
+      const payload = this.stripLevelCodeAndForward(body);
+      const { data } = await this.platformClient.patch(`/api/members/by-member-id/${encodeURIComponent(memberId)}`, payload, {
         headers: { Authorization: this.getAuthHeader(authHeader) },
       });
       return data;

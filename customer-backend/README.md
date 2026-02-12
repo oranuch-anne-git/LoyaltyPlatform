@@ -8,9 +8,9 @@ Separate API project for **customer-facing** endpoints. Proxies to the Admin Bac
 |--------|------|------|-------------|
 | POST | /api/auth/token | — | Get JWT with API key. Send `X-API-Key` header or body `{ "apiKey": "..." }`. Proxies to Admin Backend. Response: `{ status: { success, message }, data: { access_token } }`. |
 | GET | /api/members/levels | JWT | **Company_GetMemberLevel** – list member levels (Yellow, Silver, Black) with benefit fields. |
-| GET | /api/members/get-info/:memberId | JWT | **Member_GetInfo** – full member (profile, address, pointLedgers, redemptions, transactions). `:memberId` = human-readable ID (e.g. M123ABC). |
-| POST | /api/members | JWT | Create member. Body: profile + optional address (firstName, lastName, nationalType, gender, birthdate, mobile, email, levelCode, addr_*, etc.). |
-| PATCH | /api/members/:memberId | JWT | Update member profile (and/or address) by memberId. Body: any of firstName, lastName, nationalType, citizenId, passport, gender, birthdate, mobile, email, levelCode, addr_*, etc. |
+| GET | /api/members/get-info/:memberId | JWT | **Member_GetInfo** – full member (member, profile, address). |
+| POST | /api/members | JWT | Create member profile (and/or address) (firstName, lastName, nationalType, citizenId, passport, gender, birthdate, mobile, email, addr_*, etc.). |
+| PATCH | /api/members/:memberId | JWT | Update member profile (and/or address) by memberId. Body: any of firstName, lastName, nationalType, citizenId, passport, gender, birthdate, mobile, email, addr_*, etc. |
 | PATCH | /api/members/:memberId/address | JWT | Update member address only by memberId. Body: addr_addressNo, addr_building, addr_road, addr_soi, addr_moo, addr_subdistrict, addr_subdistrictCode, addr_district, addr_districtCode, addr_province, addr_provinceCode, addr_zipCode, addr_country. |
 | PATCH | /api/members/:memberId/cancel | JWT | Cancel member by memberId: mark `active = false` (deactivate). Does not delete the member. |
 

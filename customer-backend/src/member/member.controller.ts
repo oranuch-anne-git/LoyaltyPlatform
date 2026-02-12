@@ -20,7 +20,7 @@ export class MemberController {
     return this.member.getInfo(memberId, authorization);
   }
 
-  /** Create member. Body: profile + optional address (name, surname, nationalType, sex, birthdate, mobile, email, addr_*, etc.) */
+  /** Create member. Body: same fields as Update (firstName, lastName, nationalType, gender, birthdate, mobile, email, addr_*, etc.). levelCode is not accepted. */
   @Post()
   @UseGuards(AuthGuard('jwt'))
   create(@Body() body: Record<string, unknown>, @Headers('authorization') authorization?: string) {
@@ -45,7 +45,7 @@ export class MemberController {
     return this.member.cancel(memberId, authorization);
   }
 
-  /** Update member profile (and/or address) by memberId. Body: name, surname, nationalType, citizenId, passport, sex, birthdate, mobile, email, addr_*, etc. */
+  /** Update member profile (and/or address) by memberId. Body: firstName, lastName, nationalType, citizenId, passport, gender, birthdate, mobile, email, addr_*, etc. levelCode is not accepted. */
   @Patch(':memberId')
   @UseGuards(AuthGuard('jwt'))
   update(
